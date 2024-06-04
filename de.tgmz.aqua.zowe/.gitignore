@@ -1,0 +1,7 @@
+/workspace/
+**/.settings
+**/target
+**/bin
+**/.polyglot*
+**/.dbeaver/
+**/.tycho-consumer-pom.xml

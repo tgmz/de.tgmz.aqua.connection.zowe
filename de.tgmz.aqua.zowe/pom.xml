@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*********************************************************************
+* Copyright (c) 06.10.2023 Thomas Zierer
+*
+* This program and the accompanying materials are made
+* available under the terms of the Eclipse Public License 2.0
+* which is available at https://www.eclipse.org/legal/epl-2.0/
+*
+* SPDX-License-Identifier: EPL-2.0
+**********************************************************************/
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.tgmz</groupId>
+	<artifactId>de.tgmz.aqua.zowe</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Aqua Connection ZOWE</name>
+
+	<description>ZOWE for Aqua</description>
+
+	<inceptionYear>2023</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>Copyright by Thomas Zierer 2024. All rights reserved</name>
+		</license>
+	</licenses>
+
+	<organization>
+		<name>Thomas Zierer</name>
+	</organization>
+	
+	<distributionManagement>
+		<site>
+			<id>${project.artifactId}-site</id>
+			<url>file://${project.build.directory}/completesite</url>
+		</site>
+	</distributionManagement>
+  
+	<developers>
+		<developer>
+			<id>thomas.zierer@muenchen-mail.de</id>
+			<name>Thomas Zierer</name>
+			<email>thomas.zierer@muenchen-mail.de</email>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<tycho-version>3.0.4</tycho-version>
+		<java-version>17</java-version>
+		<jacoco.version>0.8.11</jacoco.version>
+		<sonar.java.source>17</sonar.java.source>
+ 		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
+ 		<maven-jarsigner-version>3.0.0</maven-jarsigner-version>
+	</properties>
+
+	<modules>
+		<module>de.tgmz.aqua.target</module>
+		<module>de.tgmz.aqua.connection.zowe</module>
+		<module>de.tgmz.aqua.connection.zowe.test</module>
+		<module>de.tgmz.aqua.connection.zowe.feature</module>
+		<module>de.tgmz.aqua.connection.zowe.updatesite</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.9</version>
+				<dependencies>
+					<dependency>
+						<groupId>commons-collections</groupId>
+						<artifactId>commons-collections</artifactId>
+						<version>3.2.2</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.7.1</version>
+				<configuration>
+					<locales>de,en</locales>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.wagon</groupId>
+						<artifactId>wagon-webdav-jackrabbit</artifactId>
+						<version>3.4.0</version>
+					</dependency>
+					<dependency>
+						<groupId>commons-collections</groupId>
+						<artifactId>commons-collections</artifactId>
+						<version>3.2.2</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>${maven-jarsigner-version}</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>${jcs.skip}</skip>
+					<keystore>${jcs.keystore}</keystore>
+					<alias>${jcs.alias}</alias>
+					<storepass>${jcs.storepass}</storepass>
+					<keypass>${jcs.keypass}</keypass>
+					<verbose>false</verbose>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-versions-plugin</artifactId>
+				<version>${tycho-version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<executionEnvironment>org.eclipse.justj.openjdk.hotspot.jre.full-17</executionEnvironment>
+					<target>
+						<artifact>
+							<groupId>de.tgmz</groupId>
+							<artifactId>de.tgmz.aqua.target</artifactId>
+							<version>${project.version}</version>
+						</artifact>
+					</target>
+					<environments>
+						<environment>
+							<os>win32</os>
+							<ws>win32</ws>
+							<arch>x86_64</arch>
+						</environment>
+						<!-- <environment> 
+							<os>linux</os> <ws>gtk</ws> <arch>x86_64</arch> </environment> <environment> 
+							<os>macosx</os> <ws>cocoa</ws> <arch>x86_64</arch> </environment> -->
+					</environments>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho.extras</groupId>
+				<artifactId>target-platform-validation-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.rat</groupId>
+				<artifactId>apache-rat-plugin</artifactId>
+				<version>0.13</version>
+				<configuration>
+					<consoleOutput>true</consoleOutput>
+					<ignoreErrors>false</ignoreErrors>
+					<!-- Ensure EPL only -->
+					<addDefaultLicenseMatchers>false</addDefaultLicenseMatchers>
+       				<licenses>                                                                                                         
+       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
+       						<licenseFamilyCategory>EPL</licenseFamilyCategory>                                                         
+       						<licenseFamilyName>Eclipse Public License</licenseFamilyName>                                              
+       						<notes></notes>                                                                                            
+       						<patterns>                                                                                                 
+       							<pattern>SPDX-License-Identifier: EPL-2.0</pattern>                                                          
+       						</patterns>                                                                                                
+       					</license>                                                                                                     
+       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
+       						<licenseFamilyCategory>JQF</licenseFamilyCategory>                                                         
+       						<licenseFamilyName>JQuery Foundation</licenseFamilyName>                                              
+       						<notes></notes>                                                                                            
+       						<patterns>                                                                                                 
+       							<pattern>jQuery Foundation</pattern>                                                          
+       						</patterns>                                                                                                
+       					</license>                                                                                                     
+       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
+       						<licenseFamilyCategory>OWASP</licenseFamilyCategory>                                                         
+       						<licenseFamilyName>The OWASP Foundation</licenseFamilyName>                                              
+       						<notes></notes>                                                                                            
+       						<patterns>                                                                                                 
+       							<pattern>Copyright (c) 2008,2009 - The OWASP Foundation</pattern>                                                          
+       						</patterns>                                                                                                
+       					</license>                                                                                                     
+       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
+       						<licenseFamilyCategory>IBM</licenseFamilyCategory>                                                         
+       						<licenseFamilyName>International Business Machines Corporation</licenseFamilyName>                                              
+       						<notes></notes>                                                                                            
+       						<patterns>                                                                                                 
+       							<pattern>Licensed Materials - Property of IBM</pattern>                                                          
+       							<pattern>Licensed materials - Property of IBM</pattern>                                                          
+       						</patterns>                                                                                                
+       					</license>                                                                                                     
+       				</licenses>                                                                                                        
+       				<licenseFamilies>                                                                                                  
+       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
+       						<familyName>Eclipse Public License</familyName>                                                            
+       					</licenseFamily>     
+       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
+       						<familyName>JQuery Foundation</familyName>                                                            
+       					</licenseFamily>     
+       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
+       						<familyName>The OWASP Foundation</familyName>                                                            
+       					</licenseFamily>     
+       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
+       						<familyName>International Business Machines Corporation</familyName>                                                            
+       					</licenseFamily>     
+       				</licenseFamilies>                                                                                          
+					<excludes combine.children="append">
+       					<exclude>**/target/**</exclude>
+       					<exclude>**/bin/**</exclude>
+						<!-- Eclipse -->
+           				<exclude>**/*.launch</exclude>                                                                                 
+           				<exclude>**/.settings/**</exclude>                                                                                 
+           				<exclude>**/.project</exclude>                                                                                 
+           				<exclude>**/.classpath</exclude>                                                                                 
+						<!-- OSGI -->
+						<exclude>**/MANIFEST.MF</exclude>
+           				<exclude>**/build.properties</exclude>                                                                         
+						<!-- Tycho stuff -->
+       					<exclude>**/.polyglot.META-INF</exclude>                                                          
+       					<exclude>**/.polyglot..META-INF_MANIFEST.MF</exclude>                                                          
+       					<exclude>**/.tycho-consumer-pom.xml</exclude>
+						<!-- Crypto keyfile -->
+       					<exclude>src/keyfile</exclude>                                                          
+						<!-- Test resources -->
+       					<exclude>src/testresources/**</exclude>                                                          
+						<!-- Generated files -->
+       					<exclude>**/*.jardesc</exclude>                                                          
+						<!-- Dummy stuff -->
+       					<exclude>**/dummy.txt</exclude>                                                          
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-compiler-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<useProjectSettings>false</useProjectSettings>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<source>${java-version}</source>
+						<target>${java-version}</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-surefire-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<useJDK>${tycho-useJDK}</useJDK>
+						<useUIHarness>true</useUIHarness>
+						<includes>
+							<include>**/*Test.java</include>
+						</includes>
+						<!-- Kill test JVM if tests take more than 10 minutes (600 seconds) 
+							to finish -->
+						<forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.tycho.extras</groupId>
+					<artifactId>target-platform-validation-plugin</artifactId>
+					<version>${tycho-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>build-helper-maven-plugin</artifactId>
+					<version>3.4.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>cc</id>
+			<properties>
+				<!-- Properties to enable jacoco code coverage analysis -->
+				<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
+				<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+				<sonar.coverage.jacoco.xmlReportPaths>../de.tgmz.aqua.zowe.test/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+				<sonar.coverage.exclusions>**/test/**</sonar.coverage.exclusions>
+				<sonar.cpd.exclusions>**/Activator.java</sonar.cpd.exclusions>
+			</properties>
+			<build>
+				<plugins>
+					<!-- Enabling use of jacoco -->
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>${jacoco.version}</version>
+						<executions>
+							<execution>
+								<id>prepare-agent</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<goals>
+									<goal>report-aggregate</goal>
+								</goals>
+								<phase>verify</phase>
+								<configuration>
+									<formats>
+										<format>XML</format>
+									</formats>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>odc</id>
+			<properties>
+				<sonar.dependencyCheck.htmlReportPath>${project.build.directory}/dependency-check-report.html</sonar.dependencyCheck.htmlReportPath>
+			</properties>
+			<build>
+				<plugins>
+		            <plugin>
+    	    	        <groupId>org.owasp</groupId>
+        	    	    <artifactId>dependency-check-maven</artifactId>
+            	    	<version>9.0.9</version>
+            	    	<configuration>
+							<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+							<failBuildOnCVSS>8.2</failBuildOnCVSS>
+							<suppressionFile>src/main/resources/dependency-check-suppressions.xml</suppressionFile>
+            	    	</configuration>
+              			<executions>
+                  			<execution>
+                      			<goals>
+                          			<goal>aggregate</goal>
+                      			</goals>
+                  			</execution>
+                  		</executions>
+                  	</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
