@@ -57,10 +57,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<tycho-version>3.0.4</tycho-version>
 		<java-version>17</java-version>
-		<jacoco.version>0.8.11</jacoco.version>
+		<jacoco.version>0.8.12</jacoco.version>
 		<sonar.java.source>17</sonar.java.source>
  		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
- 		<maven-jarsigner-version>3.0.0</maven-jarsigner-version>
 	</properties>
 
 	<modules>
@@ -104,27 +103,6 @@
 						<version>3.2.2</version>
 					</dependency>
 				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jarsigner-plugin</artifactId>
-				<version>${maven-jarsigner-version}</version>
-				<executions>
-					<execution>
-						<id>sign</id>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<skip>${jcs.skip}</skip>
-					<keystore>${jcs.keystore}</keystore>
-					<alias>${jcs.alias}</alias>
-					<storepass>${jcs.storepass}</storepass>
-					<keypass>${jcs.keypass}</keypass>
-					<verbose>false</verbose>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
@@ -184,44 +162,10 @@
        							<pattern>SPDX-License-Identifier: EPL-2.0</pattern>                                                          
        						</patterns>                                                                                                
        					</license>                                                                                                     
-       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
-       						<licenseFamilyCategory>JQF</licenseFamilyCategory>                                                         
-       						<licenseFamilyName>JQuery Foundation</licenseFamilyName>                                              
-       						<notes></notes>                                                                                            
-       						<patterns>                                                                                                 
-       							<pattern>jQuery Foundation</pattern>                                                          
-       						</patterns>                                                                                                
-       					</license>                                                                                                     
-       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
-       						<licenseFamilyCategory>OWASP</licenseFamilyCategory>                                                         
-       						<licenseFamilyName>The OWASP Foundation</licenseFamilyName>                                              
-       						<notes></notes>                                                                                            
-       						<patterns>                                                                                                 
-       							<pattern>Copyright (c) 2008,2009 - The OWASP Foundation</pattern>                                                          
-       						</patterns>                                                                                                
-       					</license>                                                                                                     
-       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
-       						<licenseFamilyCategory>IBM</licenseFamilyCategory>                                                         
-       						<licenseFamilyName>International Business Machines Corporation</licenseFamilyName>                                              
-       						<notes></notes>                                                                                            
-       						<patterns>                                                                                                 
-       							<pattern>Licensed Materials - Property of IBM</pattern>                                                          
-       							<pattern>Licensed materials - Property of IBM</pattern>                                                          
-       						</patterns>                                                                                                
-       					</license>                                                                                                     
        				</licenses>                                                                                                        
        				<licenseFamilies>                                                                                                  
        					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
        						<familyName>Eclipse Public License</familyName>                                                            
-       					</licenseFamily>     
-       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
-       						<familyName>JQuery Foundation</familyName>                                                            
-       					</licenseFamily>     
-       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
-       						<familyName>The OWASP Foundation</familyName>                                                            
-       					</licenseFamily>     
-       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
-       						<familyName>International Business Machines Corporation</familyName>                                                            
        					</licenseFamily>     
        				</licenseFamilies>                                                                                          
 					<excludes combine.children="append">
@@ -236,11 +180,7 @@
 						<exclude>**/MANIFEST.MF</exclude>
            				<exclude>**/build.properties</exclude>                                                                         
 						<!-- Tycho stuff -->
-       					<exclude>**/.polyglot.META-INF</exclude>                                                          
-       					<exclude>**/.polyglot..META-INF_MANIFEST.MF</exclude>                                                          
-       					<exclude>**/.tycho-consumer-pom.xml</exclude>
-						<!-- Crypto keyfile -->
-       					<exclude>src/keyfile</exclude>                                                          
+       					<exclude>**/.polyglot.*</exclude>                                                          
 						<!-- Test resources -->
        					<exclude>src/testresources/**</exclude>                                                          
 						<!-- Generated files -->
@@ -300,9 +240,8 @@
 				<!-- Properties to enable jacoco code coverage analysis -->
 				<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
 				<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-				<sonar.coverage.jacoco.xmlReportPaths>../de.tgmz.aqua.zowe.test/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+				<sonar.coverage.jacoco.xmlReportPaths>../de.tgmz.aqua.connection.zowe.test/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 				<sonar.coverage.exclusions>**/test/**</sonar.coverage.exclusions>
-				<sonar.cpd.exclusions>**/Activator.java</sonar.cpd.exclusions>
 			</properties>
 			<build>
 				<plugins>
@@ -345,19 +284,25 @@
 		            <plugin>
     	    	        <groupId>org.owasp</groupId>
         	    	    <artifactId>dependency-check-maven</artifactId>
-            	    	<version>9.0.9</version>
-            	    	<configuration>
+            	    	<version>9.2.0</version>
+						<configuration>
 							<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
 							<failBuildOnCVSS>8.2</failBuildOnCVSS>
-							<suppressionFile>src/main/resources/dependency-check-suppressions.xml</suppressionFile>
-            	    	</configuration>
-              			<executions>
-                  			<execution>
-                      			<goals>
-                          			<goal>aggregate</goal>
-                      			</goals>
-                  			</execution>
-                  		</executions>
+							<failOnError>true</failOnError>
+							<nvdApiKey>${nvdApiKey}</nvdApiKey>
+							<formats>
+								<format>HTML</format>
+							</formats>
+						</configuration>
+						<executions>
+							<execution>
+								<id>dependency-check</id>
+								<phase>package</phase>
+								<goals>
+									<goal>aggregate</goal>
+								</goals>
+							</execution>
+						</executions>
                   	</plugin>
 				</plugins>
 			</build>

@@ -15,7 +15,8 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    # Tests only work on Windows 
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -29,6 +30,7 @@ jobs:
         
       # Skip java code signing. Activate it if you have a certificate
       # Use system JDK. If you're still on java 8 use "BREE" and add a java 17 to your toolchain
-      # Skip test (only work on Windows) 
     - name: Build with Maven
-      run: mvn -B verify -Djcs.skip=true -Dtycho-useJDK=SYSTEM -DskipTests=true --file de.tgmz.aqua.zowe/pom.xml
+      env:
+        nvdApiKey: ${{ secrets.NVDAPIKEY }}
+      run: mvn -B verify -Dtycho-useJDK=SYSTEM --file de.tgmz.aqua.zowe/pom.xml
