@@ -41,47 +41,47 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	public static final String UNKNOWN = "UNKNOWN";
 
 	private boolean connected;
-	
+
 	private ZosConnection connection;
-	
+
 	private ZoweUssConnection ussConnection;
 	private ZoweJobConnection jobConnection;
 	private ZoweDsnConnection dsnConnection;
-	
+
 	private SSLContext sslContext;
 
 	@Override
 	public void connect() throws ConnectionException {
 		CredentialsConfiguration cc = ConnectionsPlugin.getDefault().getCredentialsManager().findCredentialsConfigurationByID(super.getConfiguration().getCredentialsID());
-		
+
 		this.connect(getConfiguration().getHost(), getConfiguration().getPort(), cc.getUserID(), new String(cc.getPasswordAsCharArray()));
 	}
-	
+
 	public void connect(String host, int port, String user, String pass) throws ConnectionException {
 		connection = new ZosConnection(host, String.valueOf(port), user, pass);
 
 		initSSLConfiguration();
-		
+
 		ussConnection = new ZoweUssConnection(connection);
 		jobConnection = new ZoweJobConnection(connection);
 		dsnConnection = new ZoweDsnConnection(connection);
-		
-        ZosmfStatus zosmfStatus = new ZosmfStatus(connection);
 
-        try {
-        	ZosmfInfoResponse zosmfInfoResponse = zosmfStatus.get();
-        	
-        	String realHost = zosmfInfoResponse.getZosmfHostName().orElse(UNKNOWN);
-        	String osVersion =  zosmfInfoResponse.getZosVersion().orElse(UNKNOWN);
-        	
-        	connected = true;
-        	
-        	LOG.info("Connected to {} running on z/OS version {}", realHost, osVersion);
-        } catch (ZosmfRequestException e) {
-        	connected = false;
-        	
-        	throw new ConnectionException(e);
-        }
+		ZosmfStatus zosmfStatus = new ZosmfStatus(connection);
+
+		try {
+			ZosmfInfoResponse zosmfInfoResponse = zosmfStatus.get();
+
+			String realHost = zosmfInfoResponse.getZosmfHostName().orElse(UNKNOWN);
+			String osVersion = zosmfInfoResponse.getZosVersion().orElse(UNKNOWN);
+
+			connected = true;
+
+			LOG.info("Connected to {} running on z/OS version {}", realHost, osVersion);
+		} catch (ZosmfRequestException e) {
+			connected = false;
+
+			throw new ConnectionException(e);
+		}
 	}
 
 	@Override
@@ -136,7 +136,8 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	@Override
-	public List<ZOSConnectionResponse> getJobs(String jobName, JobStatus aJobStatus, String owner) throws ConnectionException {
+	public List<ZOSConnectionResponse> getJobs(String jobName, JobStatus aJobStatus, String owner)
+			throws ConnectionException {
 		return jobConnection.getJobs(jobName, aJobStatus, owner);
 	}
 
@@ -146,7 +147,8 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	@Override
-	public ByteArrayOutputStream retrieveDataSetMember(String dataSetName, String memberName) throws ConnectionException {
+	public ByteArrayOutputStream retrieveDataSetMember(String dataSetName, String memberName)
+			throws ConnectionException {
 		return dsnConnection.retrieveDataSetMember(dataSetName, memberName);
 	}
 
@@ -166,7 +168,8 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	@Override
-	public void saveDataSetMember(String dataSetName, String memberName, InputStream dataSetContents) throws ConnectionException {
+	public void saveDataSetMember(String dataSetName, String memberName, InputStream dataSetContents)
+			throws ConnectionException {
 		dsnConnection.saveDataSetMember(dataSetName, memberName, dataSetContents);
 	}
 
@@ -186,7 +189,7 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	@Override
-	public ZOSConnectionResponse getDataSetMember(String dataSetName, String memberName)	throws ConnectionException {
+	public ZOSConnectionResponse getDataSetMember(String dataSetName, String memberName) throws ConnectionException {
 		return dsnConnection.getDataSetMember(dataSetName, memberName);
 	}
 
@@ -196,12 +199,14 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	@Override
-	public void createDataSet(String dataSetName, String basedOnDataSetPath, InputStream contents) throws ConnectionException {
+	public void createDataSet(String dataSetName, String basedOnDataSetPath, InputStream contents)
+			throws ConnectionException {
 		dsnConnection.createDataSet(dataSetName, basedOnDataSetPath, contents);
 	}
 
 	@Override
-	public List<ZOSConnectionResponse> getHFSChildren(String aPath, boolean includeHiddenFiles) throws ConnectionException {
+	public List<ZOSConnectionResponse> getHFSChildren(String aPath, boolean includeHiddenFiles)
+			throws ConnectionException {
 		return ussConnection.getHFSChildren(aPath, includeHiddenFiles);
 	}
 
@@ -226,7 +231,8 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	@Override
-	public void saveFileHFS(String aPath, InputStream fileContents, IZOSConstants.FileType aFileType) throws ConnectionException {
+	public void saveFileHFS(String aPath, InputStream fileContents, IZOSConstants.FileType aFileType)
+			throws ConnectionException {
 		ussConnection.saveFileHFS(aPath, fileContents, aFileType);
 	}
 
@@ -275,7 +281,7 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	public void changePermissions(String aHFSEntry, String octal) throws ConnectionException {
 		ussConnection.changePermissions(aHFSEntry, octal);
 	}
-	
+
 	private void initSSLConfiguration() {
 		try {
 			Object[] helper = ExplorerSecurityHelper.getSSLContext(getConfiguration().getName(), getConfiguration().getHost());
