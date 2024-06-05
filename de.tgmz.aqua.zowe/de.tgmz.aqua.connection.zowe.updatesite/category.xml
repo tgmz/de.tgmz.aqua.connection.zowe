@@ -12,7 +12,7 @@
 -->
 <site>
    <feature id="de.tgmz.aqua.connection.zowe.feature">
-      <category name="Aqua Connection ZOWE"/>
+      <category name="ZOWE Connector for IBM Aqua"/>
    </feature>
-   <category-def name="de.tgmz.aqua.connection.zowe" label="Aqua Connection ZOWE"/>
+   <category-def name="de.tgmz.aqua.connection.zowe" label="ZOWE Connector for IBM Aqua"/>
 </site>

@@ -6,7 +6,8 @@
 #
 # Contributors:
 #    Thomas Zierer - initial API and implementation and/or initial documentation
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+
+name: Deploy to GitHub Pages with Jekyll
 
 on:
   # Allows you to run this workflow manually from the Actions tab
@@ -36,14 +37,14 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
 
       - name: Build with Maven
-        run: mvn -B verify -Djcs.skip=true -Dtycho-useJDK=SYSTEM -DskipTests=true --file de.tgmz.aqua.zowe/pom.xml
+        run: mvn -B package -Dtycho-useJDK=SYSTEM -DskipTests=true --file de.tgmz.aqua.zowe/pom.xml
         
       - name: Generate index.html  
         run: echo "<html><table>" > $ROOT_PUBLISH/index.html; find $ROOT_PUBLISH -maxdepth 1 -printf "<tr><td><a href=\"%f\">%f</a></td><td>%s</td><td>%Tc</td></tr>\n" >> $ROOT_PUBLISH/index.html; echo "</table></html>" >> $ROOT_PUBLISH/index.html
