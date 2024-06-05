@@ -25,17 +25,19 @@ public class Activator extends AbstractUIPlugin {
 	public static Activator getDefault() {
 		return plugin;
 	}
-	
+
 	private static void setDefault(Activator aPlugin) {
 		Activator.plugin = aPlugin;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+	 * 
+	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.
+	 * BundleContext)
 	 */
-	//CHECKSTYLE DISABLE IllegalThrows
-    // start() und stop() müssen super... aufrufen und beide deklarieren ... throws Excpetion.
+	// CHECKSTYLE DISABLE IllegalThrows
+	// start() and stop() call super... which declare throws Exception
 	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
@@ -44,7 +46,9 @@ public class Activator extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {

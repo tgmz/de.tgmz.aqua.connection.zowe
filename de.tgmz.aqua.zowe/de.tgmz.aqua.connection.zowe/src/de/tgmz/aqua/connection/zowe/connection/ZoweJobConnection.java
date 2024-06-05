@@ -48,32 +48,33 @@ public class ZoweJobConnection {
 	private static final Logger LOG = LoggerFactory.getLogger(ZoweJobConnection.class);
 
 	private ZosConnection connection;
-	
+
 	private Response response;
-	
-    private JobGet jobGet;
-    private JobSubmit jobSubmit;
-    private JobDelete jobDelete;
-    private JobCancel jobCancel;
+
+	private JobGet jobGet;
+	private JobSubmit jobSubmit;
+	private JobDelete jobDelete;
+	private JobCancel jobCancel;
 
 	public ZoweJobConnection(ZosConnection connection) {
 		this.connection = connection;
-		
+
 		jobGet = new JobGet(connection);
 		jobSubmit = new JobSubmit(connection);
 		jobDelete = new JobDelete(connection);
 		jobCancel = new JobCancel(connection);
-		
+
 	}
+
 	public ZOSConnectionResponse getJob(String jobID) throws ConnectionException {
 		LOG.debug("getJob {}", jobID);
 
 		Job byId;
-		
+
 		try {
 			byId = jobGet.getById(jobID);
 		} catch (ZosmfRequestException e) {
-        	throw new ConnectionException(e);
+			throw new ConnectionException(e);
 		}
 
 		return convertJob(byId);
@@ -81,80 +82,81 @@ public class ZoweJobConnection {
 
 	public ByteArrayOutputStream getJobStepSpool(String jobID) throws ConnectionException {
 		LOG.debug("getJobStepSpool {}", jobID);
-		
-		String[] split = jobID.split("\\.");
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
-		try {
-            Job jobs = jobGet.getById(split[0]);
-            List<JobFile> files = jobGet.getSpoolFilesByJob(jobs);
-        	
-        	for (JobFile file : files) {
-        		if (Long.parseLong(split[1]) == file.getId().orElse(0L)) {
-        			response = download(file.getRecordsUrl().orElseThrow(() -> new ConnectionException("No download URL available")));
 
-        			baos.writeBytes(((String) response.getResponsePhrase().orElse("")).getBytes());
-        			
-        			break;
-        		}
-        	}
-        } catch (ZosmfRequestException e) {
-        	throw new ConnectionException(e);
-        }
-		
+		String[] split = jobID.split("\\.");
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+		try {
+			Job jobs = jobGet.getById(split[0]);
+			List<JobFile> files = jobGet.getSpoolFilesByJob(jobs);
+
+			for (JobFile file : files) {
+				if (Long.parseLong(split[1]) == file.getId().orElse(0L)) {
+					response = download(file.getRecordsUrl().orElseThrow(() -> new ConnectionException("No download URL available")));
+
+					baos.writeBytes(((String) response.getResponsePhrase().orElse("")).getBytes());
+
+					break;
+				}
+			}
+		} catch (ZosmfRequestException e) {
+			throw new ConnectionException(e);
+		}
+
 		return baos;
 	}
 
 	public List<ZOSConnectionResponse> getJobSteps(String jobID) throws ConnectionException {
 		List<JobFile> spoolFilesByJob;
-		
+
 		try {
 			Job byId = jobGet.getById(jobID);
 			spoolFilesByJob = jobGet.getSpoolFilesByJob(byId);
 		} catch (ZosmfRequestException e) {
-        	throw new ConnectionException(e);
+			throw new ConnectionException(e);
 		}
 
 		List<ZOSConnectionResponse> result = new ArrayList<>(spoolFilesByJob.size());
 
 		for (JobFile jf : spoolFilesByJob) {
 			ZOSConnectionResponse cr = new ZOSConnectionResponse();
-			
+
 			String id = jf.getJobId().orElse(jobID);
-			
+
 			cr.addAttribute(IZOSConstants.JOB_STEPNAME, id + "." + jf.getDdName().orElse(ZoweConnection.UNKNOWN));
 			cr.addAttribute(IZOSConstants.JOB_ID, id);
 			cr.addAttribute(IZOSConstants.JOB_DDNAME, jf.getDdName().orElse(jobID));
 			cr.addAttribute(IZOSConstants.JOB_DSNAME, id + "." + jf.getId().orElse(0L));
 			cr.addAttribute(IZOSConstants.JOB_SPOOL_FILES_AVAILABLE, true);
-			
+
 			result.add(cr);
 		}
-	
+
 		return result;
 	}
 
 	public List<ZOSConnectionResponse> getJobs(String jobName, IZOSConstants.JobStatus aJobStatus, String owner) throws ConnectionException {
 		LOG.debug("getJobs {} {} {}", jobName, aJobStatus, owner);
 
-    	List<ZOSConnectionResponse> result = new LinkedList<>();
-    	List<Job> jobs;
-    	
-        GetJobParams params = new GetJobParams.Builder(owner).prefix(jobName).build();
+		List<ZOSConnectionResponse> result = new LinkedList<>();
+		List<Job> jobs;
 
-        try {
-        	jobs = jobGet.getCommon(params);
-        } catch (ZosmfRequestException e) {
-        	throw new ConnectionException(e);
-        }
-        	
-        for (Job job : jobs) {
-        	if (aJobStatus == JobStatus.ALL || JobStatus.valueOf(job.getStatus().orElse(ZoweConnection.UNKNOWN)) == aJobStatus) {
-        		result.add(convertJob(job));
-        	}
-        }
-		
+		GetJobParams params = new GetJobParams.Builder(owner).prefix(jobName).build();
+
+		try {
+			jobs = jobGet.getCommon(params);
+		} catch (ZosmfRequestException e) {
+			throw new ConnectionException(e);
+		}
+
+		for (Job job : jobs) {
+			if (aJobStatus == JobStatus.ALL
+					|| JobStatus.valueOf(job.getStatus().orElse(ZoweConnection.UNKNOWN)) == aJobStatus) {
+				result.add(convertJob(job));
+			}
+		}
+
 		return result;
 	}
 
@@ -163,55 +165,55 @@ public class ZoweJobConnection {
 
 		try {
 			Job job = jobSubmit.submit(String.format("%s(%s)", dataSetName, memberName));
-			
+
 			LOG.debug("jobSubmit {}", job);
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
-		
+
 		return new ByteArrayOutputStream(0);
 	}
 
 	public ByteArrayOutputStream getJobSpool(String jobID) throws ConnectionException {
 		LOG.debug("getJobSpool {}", jobID);
 
-        GetJobParams params = new GetJobParams.Builder("*").jobId(jobID).build();
-        
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            List<Job> jobs = jobGet.getCommon(params);
-            List<JobFile> files = jobGet.getSpoolFilesByJob(jobs.get(0));
-            
-            StringBuilder sb = new StringBuilder();
-            
-            for (JobFile jobFile : files) {
-            	Optional<String> oString = jobFile.getRecordsUrl();
-            	
-            	if (oString.isPresent()) {
-            		response = download(oString.get());
-                
-            		sb.append((String) response.getResponsePhrase().orElse(""));
-            	}
-            }
-            
-            baos.write(sb.toString().getBytes());
-            
-            return baos;
-        } catch (ZosmfRequestException |IOException e) {
+		GetJobParams params = new GetJobParams.Builder("*").jobId(jobID).build();
+
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+			List<Job> jobs = jobGet.getCommon(params);
+			List<JobFile> files = jobGet.getSpoolFilesByJob(jobs.get(0));
+
+			StringBuilder sb = new StringBuilder();
+
+			for (JobFile jobFile : files) {
+				Optional<String> oString = jobFile.getRecordsUrl();
+
+				if (oString.isPresent()) {
+					response = download(oString.get());
+
+					sb.append((String) response.getResponsePhrase().orElse(""));
+				}
+			}
+
+			baos.write(sb.toString().getBytes());
+
+			return baos;
+		} catch (ZosmfRequestException | IOException e) {
 			throw new ConnectionException(e);
 		}
 	}
 
 	public ZOSConnectionResponse submitJob(InputStream stream) throws ConnectionException {
 		LOG.debug("submitJob {}", stream);
-		
+
 		Job job;
-		
+
 		try (Reader r = new InputStreamReader(stream)) {
 			job = jobSubmit.submitByJcl(IOUtils.toString(r), null, null);
 		} catch (ZosmfRequestException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		
+
 		ZOSConnectionResponse cr = new ZOSConnectionResponse();
 		cr.addAttribute(IZOSConstants.JOB_NAME, job.getJobName().orElse(ZoweConnection.UNKNOWN));
 		cr.addAttribute(IZOSConstants.JOB_ID, job.getJobId().orElse(ZoweConnection.UNKNOWN));
@@ -220,25 +222,25 @@ public class ZoweJobConnection {
 		return cr;
 	}
 
-	public void deleteJob(String jobID) throws ConnectionException {
-		LOG.debug("deleteJob {}", jobID);
-		
+	public void deleteJob(String jobId) throws ConnectionException {
+		LOG.debug("deleteJob {}", jobId);
+
 		try {
-			Job byId = jobGet.getById(jobID);
-			response = jobDelete.deleteByJob(new Job.Builder().jobId(jobID).jobName(byId.getJobName().orElseThrow(() -> new ConnectionException(String.format("Job %s not found", jobID )))).build(), "2.0");
-			
+			Job byId = jobGet.getById(jobId);
+			response = jobDelete.deleteByJob(createJobBuilder(jobId, byId), "2.0");
+
 			LOG.debug("jobDelete {}", response);
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
 	}
 
-	public void cancelJob(String p0) throws ConnectionException {
-		LOG.debug("cancelJob {}", p0);
+	public void cancelJob(String jobId) throws ConnectionException {
+		LOG.debug("cancelJob {}", jobId);
 
 		try {
-			Job byId = jobGet.getById(p0);
-			response = jobCancel.cancelByJob(new Job.Builder().jobId(p0).jobName(byId.getJobName().orElseThrow(() -> new ConnectionException(String.format("Job %s not found", p0 )))).build(), null);
+			Job byId = jobGet.getById(jobId);
+			response = jobCancel.cancelByJob(createJobBuilder(jobId, byId), null);
 
 			LOG.debug("jobCancel {}", response);
 		} catch (ZosmfRequestException e) {
@@ -258,9 +260,9 @@ public class ZoweJobConnection {
 		cr.addAttribute(IZOSConstants.JOB_SPOOL_FILES_AVAILABLE, true);
 		cr.addAttribute(IZOSConstants.JOB_ERROR_CODE, job.getRetCode().orElse(ZoweConnection.UNKNOWN));
 		cr.addAttribute(IZOSConstants.JOB_HAS_SPOOL_FILES, true);
-		
+
 		Optional<String> oStatus = job.getStatus();
-		
+
 		if (oStatus.isPresent()) {
 			String status = oStatus.get();
 			JobCompletion jc;
@@ -269,17 +271,25 @@ public class ZoweJobConnection {
 			} catch (IllegalArgumentException e) {
 				jc = "OUTPUT".equals(status) ? JobCompletion.NORMAL : JobCompletion.NA;
 			}
-			
+
 			cr.addAttribute(IZOSConstants.JOB_COMPLETION, jc);
 		}
-		
+
 		return cr;
 	}
-	private Response download(String url) throws ZosmfRequestException {
-        ZosmfRequest request= ZosmfRequestFactory.buildRequest(connection, ZosmfRequestType.GET_TEXT);
-        
-        request.setUrl(url);
 
-        return request.executeRequest();
+	private Response download(String url) throws ZosmfRequestException {
+		ZosmfRequest request = ZosmfRequestFactory.buildRequest(connection, ZosmfRequestType.GET_TEXT);
+
+		request.setUrl(url);
+
+		return request.executeRequest();
+	}
+	
+	private Job createJobBuilder(String jobId, Job job) throws ConnectionException {
+		return new Job.Builder()
+				.jobId(jobId)
+				.jobName(job.getJobName().orElseThrow(() -> new ConnectionException(String.format("Job %s not found", jobId))))
+				.build();
 	}
 }

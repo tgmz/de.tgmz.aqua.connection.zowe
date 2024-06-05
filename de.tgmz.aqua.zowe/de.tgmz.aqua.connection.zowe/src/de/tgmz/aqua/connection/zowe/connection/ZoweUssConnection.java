@@ -51,17 +51,17 @@ import zowe.client.sdk.zosfiles.uss.types.CreateType;
 
 public class ZoweUssConnection {
 	private static final Logger LOG = LoggerFactory.getLogger(ZoweUssConnection.class);
-	
-	public static final ThreadLocal<DateFormat> DF = ThreadLocal.withInitial(() ->  new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
+
+	public static final ThreadLocal<DateFormat> DF = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
 
 	private Response response;
-	
+
 	private UssList ussList;
-    private UssGet ussGet;
-    private UssDelete ussDelete;
-    private UssCreate ussCreate;
-    private UssWrite ussWrite;
-    private UssChangeMode ussChangeMode;
+	private UssGet ussGet;
+	private UssDelete ussDelete;
+	private UssCreate ussCreate;
+	private UssWrite ussWrite;
+	private UssChangeMode ussChangeMode;
 
 	public ZoweUssConnection(ZosConnection connection) {
 		ussList = new UssList(connection);
@@ -71,29 +71,29 @@ public class ZoweUssConnection {
 		ussWrite = new UssWrite(connection);
 		ussChangeMode = new UssChangeMode(connection);
 	}
-	
+
 	public List<ZOSConnectionResponse> getHFSChildren(String aPath, boolean includeHiddenFiles) throws ConnectionException {
 		LOG.debug("getHFSChildren {}, {}", aPath, includeHiddenFiles);
-		
+
 		// Trailing slash yields "incorrect path"
 		String path = aPath.endsWith("/") && aPath.length() > 1 ? aPath.substring(0, aPath.length() - 1) : aPath;
 
-        List<UnixFile> items;
-        
-        try {
-            ListParams params = new ListParams.Builder().path(path).depth(1).build();
-            items = ussList.getFiles(params);
-        } catch (ZosmfRequestException e) {
-            throw new ConnectionException(e);
-        }
+		List<UnixFile> items;
 
-        List<ZOSConnectionResponse> result = new ArrayList<>(items.size());
-        
-        for (UnixFile item : items) {
+		try {
+			ListParams params = new ListParams.Builder().path(path).depth(1).build();
+			items = ussList.getFiles(params);
+		} catch (ZosmfRequestException e) {
+			throw new ConnectionException(e);
+		}
+
+		List<ZOSConnectionResponse> result = new ArrayList<>(items.size());
+
+		for (UnixFile item : items) {
 			ZOSConnectionResponse cr = new ZOSConnectionResponse();
-			
+
 			String mode = item.getMode().orElse("-rw-r-----");
-			
+
 			cr.addAttribute(IZOSConstants.HFS_PARENT_PATH, aPath);
 			cr.addAttributeDontTrim(IZOSConstants.NAME, item.getName().orElse(ZoweConnection.UNKNOWN));
 			cr.addAttribute(IZOSConstants.HFS_SIZE, item.getSize().orElse(0L));
@@ -104,7 +104,7 @@ public class ZoweUssConnection {
 
 			long time = 0L;
 			Optional<String> oMtime = item.getMtime();
-			
+
 			if (oMtime.isPresent()) {
 				try {
 					time = DF.get().parse(oMtime.get()).getTime();
@@ -112,25 +112,25 @@ public class ZoweUssConnection {
 					LOG.warn("Cannot convert mtime {}", oMtime.get());
 				}
 			}
-			
+
 			Calendar cal = Calendar.getInstance();
 			cal.setTimeInMillis(time);
-			
+
 			cr.addAttribute(IZOSConstants.HFS_LAST_USED_DATE, cal);
-			
+
 			result.add(cr);
-        }
+		}
 
 		return result;
 	}
 
 	public boolean existsHFS(String aPath) throws ConnectionException {
 		LOG.debug("existsHFS {}", aPath);
-		
-        GetParams params = new GetParams.Builder().insensitive(false).search(aPath).build();
-        try {
+
+		GetParams params = new GetParams.Builder().insensitive(false).search(aPath).build();
+		try {
 			response = ussGet.getCommon(aPath, params);
-			
+
 			LOG.debug("ussGet {}", response);
 		} catch (ZosmfRequestException e) {
 			OptionalInt oStatusCode = e.getResponse().getStatusCode();
@@ -140,22 +140,23 @@ public class ZoweUssConnection {
 				throw new ConnectionException(e);
 			}
 		}
-        
-        return true;
+
+		return true;
 	}
 
 	public boolean existsHFSFile(String aPath, String aName) throws ConnectionException {
 		LOG.debug("existsHFSFile {} {}", aPath, aName);
+
 		return existsHFS(String.format("%s/%s", aPath, aName));
 	}
 
 	public void createFolderHFS(String aPath) throws ConnectionException {
 		LOG.debug("createFolderHFS {}", aPath);
-		
-        CreateParams params = new CreateParams(CreateType.DIR, "rwxr-xr-x");
-        try {
+
+		CreateParams params = new CreateParams(CreateType.DIR, "rwxr-xr-x");
+		try {
 			response = ussCreate.create(aPath, params);
-			
+
 			LOG.debug("ussCreate {}", response);
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
@@ -165,7 +166,7 @@ public class ZoweUssConnection {
 	public void deletePathHFS(String aPath) throws ConnectionException {
 		try {
 			response = ussDelete.delete(aPath, true);
-			
+
 			LOG.debug("ussDelete {}", response);
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
@@ -174,7 +175,7 @@ public class ZoweUssConnection {
 
 	public void saveFileHFS(String aPath, InputStream fileContents, IZOSConstants.FileType aFileType) throws ConnectionException {
 		LOG.debug("saveFileHFS {} {} {}", aPath, fileContents, aFileType);
-		
+
 		try {
 			ussWrite.writeBinary(aPath, IOUtils.toByteArray(fileContents));
 		} catch (ZosmfRequestException | IOException e) {
@@ -184,7 +185,7 @@ public class ZoweUssConnection {
 
 	public void saveFileHFS(String filePath, InputStream fileContents, String charset) throws ConnectionException {
 		LOG.debug("saveFileHFS {} {} {}", filePath, fileContents, charset);
-		
+
 		try (InputStreamReader r = new InputStreamReader(fileContents)) {
 			ussWrite.writeBinary(filePath, IOUtils.toByteArray(r, Charset.forName(charset)));
 		} catch (ZosmfRequestException | IOException e) {
@@ -194,29 +195,29 @@ public class ZoweUssConnection {
 
 	public ByteArrayOutputStream getFileHFS(String aPath, FileType p1) throws ConnectionException {
 		LOG.debug("getFileHFS {}, {}", aPath, p1);
-		
+
 		byte[] content;
-		
+
 		try {
 			content = ussGet.getBinary(aPath);
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
-		
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(content.length);
-		
+
 		try (InputStream is = new ByteArrayInputStream(content)) {
 			IOUtils.copy(is, baos);
 		} catch (IOException e) {
 			throw new ConnectionException(e);
 		}
-		
+
 		return baos;
 	}
 
 	public void changePermissions(String aPath, String octal) throws ConnectionException {
 		LOG.debug("changePermissions {} {}", aPath, octal);
-		
+
 		try {
 			ussChangeMode.change(aPath, new ChangeModeParams.Builder().mode(octal).build());
 		} catch (ZosmfRequestException e) {
