@@ -28,7 +28,6 @@ import com.ibm.cics.zos.comm.IZOSConstants;
 import com.ibm.cics.zos.comm.IZOSConstants.JobStatus;
 import com.ibm.cics.zos.comm.ZOSConnectionResponse;
 import com.ibm.cics.zos.model.IJob;
-import com.ibm.cics.zos.model.IJob.JobCompletion;
 
 import zowe.client.sdk.core.ZosConnection;
 import zowe.client.sdk.rest.Response;
@@ -256,23 +255,44 @@ public class ZoweJobConnection {
 		cr.addAttribute(IZOSConstants.JOB_USER, job.getOwner().orElse(ZoweConnection.UNKNOWN));
 		cr.addAttribute(IZOSConstants.JOB_STATUS, IZOSConstants.JobStatus.valueOf(job.getStatus().orElse(ZoweConnection.UNKNOWN)));
 		cr.addAttribute(IZOSConstants.JOB_CLASS, job.getClasss().orElse(ZoweConnection.UNKNOWN));
-		cr.addAttribute(IZOSConstants.JOB_COMPLETION, job.getRetCode().orElse(ZoweConnection.UNKNOWN));
 		cr.addAttribute(IZOSConstants.JOB_SPOOL_FILES_AVAILABLE, true);
-		cr.addAttribute(IZOSConstants.JOB_ERROR_CODE, job.getRetCode().orElse(ZoweConnection.UNKNOWN));
 		cr.addAttribute(IZOSConstants.JOB_HAS_SPOOL_FILES, true);
 
-		Optional<String> oStatus = job.getStatus();
+		Optional<String> oRetCode = job.getRetCode();
 
-		if (oStatus.isPresent()) {
-			String status = oStatus.get();
-			JobCompletion jc;
-			try {
-				jc = IJob.JobCompletion.valueOf(oStatus.get());
-			} catch (IllegalArgumentException e) {
-				jc = "OUTPUT".equals(status) ? JobCompletion.NORMAL : JobCompletion.NA;
+		if (oRetCode.isPresent()) {
+			String retCode = oRetCode.get();
+			
+			IJob.JobCompletion jc;
+			
+			String[] split = retCode.split("[\\s]", 2);
+			
+			switch (split[0]) {
+			case "JCL":
+				jc = IJob.JobCompletion.JCLERROR;
+				break;
+			case "CC":
+				if ("0000".equals(split[1])) {
+					jc = IJob.JobCompletion.NORMAL;
+				} else {
+					jc = IJob.JobCompletion.BADRETURNCODE;
+				}
+				break;
+			case "ABEND":
+				jc = IJob.JobCompletion.ABEND;
+				break;
+			default:
+				try {
+					jc = IJob.JobCompletion.valueOf(split[0]);
+				} catch (IllegalArgumentException e) {
+					jc = IJob.JobCompletion.NA;
+				}
 			}
-
+			
+			cr.addAttribute(IZOSConstants.JOB_ERROR_CODE, split.length == 2 ? split[1] : "");
 			cr.addAttribute(IZOSConstants.JOB_COMPLETION, jc);
+		} else {
+			cr.addAttribute(IZOSConstants.JOB_COMPLETION, IJob.JobCompletion.ACTIVE);
 		}
 
 		return cr;

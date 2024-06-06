@@ -16,7 +16,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -42,11 +41,10 @@ import com.ibm.cics.zos.comm.IZOSConnection.DataSetArguments;
 import com.ibm.cics.zos.comm.IZOSConstants;
 import com.ibm.cics.zos.comm.IZOSConstants.FileType;
 import com.ibm.cics.zos.comm.IZOSConstants.JobStatus;
-
-import de.tgmz.aqua.connection.zowe.connection.ZoweConnection;
-
 import com.ibm.cics.zos.comm.ZOSFileNotFoundException;
 import com.ibm.cics.zos.comm.ZOSUnsupportedOperationException;
+
+import de.tgmz.aqua.connection.zowe.connection.ZoweConnection;
 
 public class ZoweConnectionMockTest {
 	private static final String LOG_LEVEL_KEY = "org.slf4j.simpleLogger.defaultLogLevel";
@@ -123,12 +121,10 @@ public class ZoweConnectionMockTest {
 
 	@Test
 	public void testDsnNotFound() throws IOException {
-		try (InputStream is0 = ZoweConnectionMockTest.class.getClassLoader().getResourceAsStream("testresources/ds1.json")) {
-			String body = IOUtils.toString(is0, StandardCharsets.UTF_8);
+		String body = IOUtils.toString(ZoweConnectionMockTest.class.getClassLoader().getResource("testresources/ds1.json"), StandardCharsets.UTF_8);
 
-			server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.DATASETS, ".*"))).respond(HttpResponse.response(body));
-			server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.FILES, ".*"))).respond(HttpResponse.response(body));
-		}
+		server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.DATASETS, ".*"))).respond(HttpResponse.response(body));
+		server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.FILES, ".*"))).respond(HttpResponse.response(body));
 
 		assertThrows(ZOSFileNotFoundException.class, () -> connection.getDataSet(DS_NAME));
 		assertThrows(ZOSFileNotFoundException.class, () -> connection.getDataSetMember(DS_NAME, MEMBER_NAME));
@@ -152,11 +148,9 @@ public class ZoweConnectionMockTest {
 		server.when(HttpRequest.request().withMethod(HTTP_POST).withPath(getUri(ZosmfPaths.FILES, ".*"))).respond(HttpResponse.response().withStatusCode(201));
 		server.when(HttpRequest.request().withMethod(HTTP_DELETE).withPath(getUri(ZosmfPaths.FILES, ".*"))).respond(HttpResponse.response().withStatusCode(204));
 
-		try (InputStream is0 = ZoweConnectionMockTest.class.getClassLoader().getResourceAsStream("testresources/ds0.json")) {
-			String body = IOUtils.toString(is0, StandardCharsets.UTF_8);
+		String body = IOUtils.toString(ZoweConnectionMockTest.class.getClassLoader().getResource("testresources/ds0.json"), StandardCharsets.UTF_8);
 
-			server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.FILES, ".*"))).respond(HttpResponse.response(body));
-		}
+		server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.FILES, ".*"))).respond(HttpResponse.response(body));
 
 		// Test with mock server
 		connection.changePermissions(HFS_PATH, MEMBER_NAME);
@@ -184,20 +178,15 @@ public class ZoweConnectionMockTest {
 		assertThrows(ConnectionException.class, () -> connection.submitJob(IOUtils.toInputStream(JOB_CARD, Charset.defaultCharset())));
 
 		// Mock successful responses
-		try (InputStream is0 = ZoweConnectionMockTest.class.getClassLoader().getResourceAsStream("testresources/jcl0.json");
-				InputStream is1 = ZoweConnectionMockTest.class.getClassLoader().getResourceAsStream("testresources/jcl1.json");
-				InputStream is2 = ZoweConnectionMockTest.class.getClassLoader().getResourceAsStream("testresources/jcl2.json")) {
+		String s0 = IOUtils.toString(ZoweConnectionMockTest.class.getClassLoader().getResource("testresources/jcl0.json"), StandardCharsets.UTF_8);
+		String s1 = IOUtils.toString(ZoweConnectionMockTest.class.getClassLoader().getResource("testresources/jcl1.json"), StandardCharsets.UTF_8);
+		String s2 = IOUtils.toString(ZoweConnectionMockTest.class.getClassLoader().getResource("testresources/jcl2.json"), StandardCharsets.UTF_8);
+		s2 = s2.replace("localhost:80", String.format("%s:%s", server.remoteAddress().getHostName(), server.getPort()));
 
-			String s0 = IOUtils.toString(is0, StandardCharsets.UTF_8);
-			String s1 = IOUtils.toString(is1, StandardCharsets.UTF_8);
-			String s2 = IOUtils.toString(is2, StandardCharsets.UTF_8);
+		server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.JOBS, ".*files*"))).respond(HttpResponse.response(s2));
+		server.when(HttpRequest.request().withMethod(HTTP_PUT).withPath(getUri(ZosmfPaths.JOBS, ".*"))).respond(HttpResponse.response(s1));
+		server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.JOBS, ".*"))).respond(HttpResponse.response(s0));
 
-			s2 = s2.replace("localhost:80", String.format("%s:%s", server.remoteAddress().getHostName(), server.getPort()));
-
-			server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.JOBS, ".*files*"))).respond(HttpResponse.response(s2));
-			server.when(HttpRequest.request().withMethod(HTTP_PUT).withPath(getUri(ZosmfPaths.JOBS, ".*"))).respond(HttpResponse.response(s1));
-			server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.JOBS, ".*"))).respond(HttpResponse.response(s0));
-		}
 		server.when(HttpRequest.request().withMethod(HTTP_DELETE).withPath(getUri(ZosmfPaths.JOBS, "/.*"))).respond(HttpResponse.response().withStatusCode(204));
 
 		// Test with mock server
@@ -212,6 +201,13 @@ public class ZoweConnectionMockTest {
 		assertNotNull(connection.getJobStepSpool(String.format("%s.%s", JOB_NAME, "101")));
 		assertNotNull(connection.submitDataSetMember(JOB_NAME, MEMBER_NAME));
 		assertNotNull(connection.submitJob(IOUtils.toInputStream(JOB_CARD, Charset.defaultCharset())));
+
+		mockCompletionCode("CC 0000");
+		mockCompletionCode("CC 0012");
+		mockCompletionCode("JCL ERROR");
+		mockCompletionCode("ABEND U4000");
+		mockCompletionCode("SYSFAIL");
+		mockCompletionCode("FOO");
 	}
 
 	@Test
@@ -240,11 +236,9 @@ public class ZoweConnectionMockTest {
 		server.when(HttpRequest.request().withMethod(HTTP_POST).withPath(getUri(ZosmfPaths.DATASETS, "/.*"))).respond(HttpResponse.response().withStatusCode(201));
 		server.when(HttpRequest.request().withMethod(HTTP_PUT).withPath(getUri(ZosmfPaths.DATASETS, "/.*"))).respond(HttpResponse.response().withStatusCode(201));
 
-		try (InputStream is0 = ZoweConnectionMockTest.class.getClassLoader().getResourceAsStream("testresources/ds0.json")) {
-			String body = IOUtils.toString(is0, StandardCharsets.UTF_8);
+		String body = IOUtils.toString(ZoweConnectionMockTest.class.getClassLoader().getResource("testresources/ds0.json"), StandardCharsets.UTF_8);
 
-			server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.DATASETS, ".*"))).respond(HttpResponse.response(body));
-		}
+		server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.DATASETS, ".*"))).respond(HttpResponse.response(body));
 
 		// Test with mock server
 		connection.deleteDataSet(DS_NAME, MEMBER_NAME);
@@ -269,5 +263,15 @@ public class ZoweConnectionMockTest {
 
 	private static String getUri(ZosmfPaths path, String pattern) {
 		return String.format("%s%s", path.getPath(), pattern);
+	}
+	
+	private void mockCompletionCode(String cc) throws IOException, ConnectionException {
+		String s = IOUtils.toString(ZoweConnectionMockTest.class.getClassLoader().getResource("testresources/jcl0.json"), StandardCharsets.UTF_8);		
+		
+		server.reset();
+		
+		s = s.replace("CC 0004", cc);
+		server.when(HttpRequest.request().withMethod(HTTP_GET).withPath(getUri(ZosmfPaths.JOBS, ".*"))).respond(HttpResponse.response(s));
+		assertNotNull(connection.getJob(JOB_NAME));
 	}
 }
