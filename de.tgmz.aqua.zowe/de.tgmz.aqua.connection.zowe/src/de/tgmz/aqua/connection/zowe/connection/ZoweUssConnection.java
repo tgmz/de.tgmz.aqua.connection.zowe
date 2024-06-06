@@ -117,7 +117,15 @@ public class ZoweUssConnection {
 			cal.setTimeInMillis(time);
 
 			cr.addAttribute(IZOSConstants.HFS_LAST_USED_DATE, cal);
-
+			
+			if (mode.startsWith("l")) {
+				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.TRUE);
+				// No idea how to get a symlinks target
+				cr.addAttribute(IZOSConstants.HFS_LINKPATH, ZoweConnection.UNKNOWN);
+			} else {
+				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.FALSE);
+			}
+			
 			result.add(cr);
 		}
 
