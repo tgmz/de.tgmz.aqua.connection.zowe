@@ -17,7 +17,7 @@
 
 	<groupId>de.tgmz</groupId>
 	<artifactId>de.tgmz.aqua.zowe</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>ZOWE Connector for IBM Aqua</name>
 
