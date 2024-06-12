@@ -12,7 +12,7 @@
 -->
 <feature
       id="de.tgmz.aqua.connection.zowe.feature"
-      label="ZOWE Connector for IBM Aqua Feature"
+      label="ZOWE Connector for IBM Aqua"
       version="1.0.2">
 
    <description>
