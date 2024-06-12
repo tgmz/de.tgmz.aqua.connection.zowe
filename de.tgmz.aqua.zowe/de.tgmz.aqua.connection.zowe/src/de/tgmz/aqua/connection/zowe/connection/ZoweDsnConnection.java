@@ -68,10 +68,14 @@ public class ZoweDsnConnection {
 	}
 
 	public List<ZOSConnectionResponse> getDataSetMembers(String dataSetName) throws ConnectionException {
+		LOG.debug("getDataSetMembers {}", dataSetName);
+
 		return dataSetName.endsWith("*") ? getDataSets(dataSetName) : getMembers(dataSetName);
 	}
 
 	public ByteArrayOutputStream retrieveDataSetMember(String dataSetName, String memberName) throws ConnectionException {
+		LOG.debug("retrieveDataSetMember {} {}", dataSetName, memberName);
+
 		return retrieve(String.format("%s(%s)", dataSetName, memberName));
 	}
 
@@ -88,6 +92,8 @@ public class ZoweDsnConnection {
 	}
 
 	public void saveDataSetMember(String dataSetName, String memberName, InputStream contents) throws ConnectionException {
+		LOG.debug("saveDataSetMember {} {} {}", dataSetName, memberName, contents);
+
 		try (Reader r = new InputStreamReader(contents)) {
 			dsnWrite.write(dataSetName, memberName, IOUtils.toString(r));
 		} catch (ZosmfRequestException | IOException e) {
@@ -96,6 +102,8 @@ public class ZoweDsnConnection {
 	}
 
 	public void deleteDataSet(String dataSetName, String memberName) throws ConnectionException {
+		LOG.debug("deleteDataSet {} {}", dataSetName, memberName);
+
 		try {
 			if (dataSetName == null) {
 				response = dsnDelete.delete(memberName);
@@ -110,6 +118,8 @@ public class ZoweDsnConnection {
 	}
 
 	public void createDataSet(String dataSetName, DataSetArguments dataSetArguments) throws ConnectionException {
+		LOG.debug("createDataSet {} {}", dataSetName, dataSetArguments);
+
 		// Convert alcunit com.ibm.cics.zos.model.DataSet$SpaceUnits
 		String alcunit;
 
@@ -148,6 +158,8 @@ public class ZoweDsnConnection {
 	}
 
 	public ZOSConnectionResponse getDataSet(String dataSetName) throws ConnectionException {
+		LOG.debug("getDataSet {}", dataSetName);
+
 		Optional<ZOSConnectionResponse> first = getDataSets(dataSetName).stream().filter(s -> dataSetName.equals(s.getAttribute("FILE_NAME"))).findFirst();
 
 		if (first.isPresent()) {
@@ -158,6 +170,8 @@ public class ZoweDsnConnection {
 	}
 
 	public ZOSConnectionResponse getDataSetMember(String dataSetName, String memberName) throws ConnectionException {
+		LOG.debug("getDataSetMember {} {}", dataSetName, memberName);
+
 		Optional<ZOSConnectionResponse> first = getDataSetMembers(dataSetName).stream().filter(s -> memberName.equals(s.getAttribute("NAME"))).findFirst();
 
 		if (first.isPresent()) {

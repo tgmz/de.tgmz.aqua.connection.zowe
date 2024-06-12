@@ -107,6 +107,8 @@ public class ZoweJobConnection {
 	}
 
 	public List<ZOSConnectionResponse> getJobSteps(String jobID) throws ConnectionException {
+		LOG.debug("getJobSteps} {}", jobID);
+		
 		List<JobFile> spoolFilesByJob;
 
 		try {
