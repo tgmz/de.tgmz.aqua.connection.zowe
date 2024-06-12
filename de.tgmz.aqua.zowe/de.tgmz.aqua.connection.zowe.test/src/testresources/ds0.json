@@ -1,1 +1,1 @@
-{"items":[{"dsname":"HLQ.FOO","recfm":"FB","dsorg":"PO","member":"BAR"},{"dsname":"HLQ.FOO.DATA","recfm":"FB","dsorg":"VS"},{"name":"/foo/bar","mtime":"2020-01-01T00:00:00","mode":"lrwxrwxrwx"}]}
+{"items":[{"dsname":"HLQ.FOO","recfm":"FB","dsorg":"PO","member":"BAR"},{"dsname":"HLQ.FOO.DATA","recfm":"FB","dsorg":"VS"},{"name":"/foo/bar","mtime":"2020-01-01T00:00:00","mode":"lrwxrwxrwx","target":"/bar/foo"}]}

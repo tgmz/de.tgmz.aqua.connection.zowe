@@ -120,8 +120,7 @@ public class ZoweUssConnection {
 			
 			if (mode.startsWith("l")) {
 				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.TRUE);
-				// No idea how to get a symlinks target
-				cr.addAttribute(IZOSConstants.HFS_LINKPATH, ZoweConnection.UNKNOWN);
+				cr.addAttribute(IZOSConstants.HFS_LINKPATH, item.getTarget().orElse(ZoweConnection.UNKNOWN));
 			} else {
 				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.FALSE);
 			}
@@ -172,6 +171,7 @@ public class ZoweUssConnection {
 	}
 
 	public void deletePathHFS(String aPath) throws ConnectionException {
+		LOG.debug("deletePathHFS {}", aPath);
 		try {
 			response = ussDelete.delete(aPath, true);
 
