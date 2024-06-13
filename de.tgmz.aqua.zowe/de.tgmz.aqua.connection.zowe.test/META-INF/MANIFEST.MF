@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
-Bundle-Version: 1.0.2
+Bundle-Version: 1.0.3
 Bundle-Localization: plugin
 Bundle-SymbolicName: de.tgmz.aqua.connection.zowe.test
 Bundle-ActivationPolicy: lazy
@@ -11,7 +11,7 @@ Require-Bundle: de.tgmz.aqua.connection.zowe,
  org.eclipse.ui.workbench,
  com.ibm.cics.core.comm,
  com.ibm.cics.zos.comm
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .,
  lib/bcpkix-jdk18on-1.71.jar,
  lib/bcprov-jdk18on-1.71.jar,
