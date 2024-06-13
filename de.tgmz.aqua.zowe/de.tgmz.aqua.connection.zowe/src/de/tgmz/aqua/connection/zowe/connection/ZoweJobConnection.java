@@ -94,12 +94,12 @@ public class ZoweJobConnection {
 				if (Long.parseLong(split[1]) == file.getId().orElse(0L)) {
 					response = download(file.getRecordsUrl().orElseThrow(() -> new ConnectionException("No download URL available")));
 
-					baos.writeBytes(((String) response.getResponsePhrase().orElse("")).getBytes());
+					baos.write(((String) response.getResponsePhrase().orElse("")).getBytes());
 
 					break;
 				}
 			}
-		} catch (ZosmfRequestException e) {
+		} catch (ZosmfRequestException |IOException e) {
 			throw new ConnectionException(e);
 		}
 

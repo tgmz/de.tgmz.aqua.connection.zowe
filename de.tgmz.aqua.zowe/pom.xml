@@ -17,7 +17,7 @@
 
 	<groupId>de.tgmz</groupId>
 	<artifactId>de.tgmz.aqua.zowe</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<packaging>pom</packaging>
 	<name>ZOWE Connector for IBM Aqua</name>
 
@@ -56,9 +56,9 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<tycho-version>3.0.4</tycho-version>
-		<java-version>17</java-version>
+		<java-version>1.8</java-version>
 		<jacoco.version>0.8.12</jacoco.version>
-		<sonar.java.source>17</sonar.java.source>
+		<sonar.java.source>1.8</sonar.java.source>
  		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
 	</properties>
 
