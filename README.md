@@ -13,6 +13,6 @@
 
 # ZOWE connector for IBM Aqua
 
-Add this plugin to your IBM Aqua 3.3 installation to connect to an IBM mainframe via its REST interface.
+Adds the ability to connect a z/OS Explorer (IBM Aqua 3.x) installation to an IBM mainframe entirely via REST (ZOWE).
 
 See this projects WIKI for further information.
