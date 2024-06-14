@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
-Bundle-Version: 1.0.3
+Bundle-Version: 1.0.3.qualifier
 Bundle-Localization: plugin
 Bundle-SymbolicName: de.tgmz.aqua.connection.zowe.test
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.tgmz.aqua.connection.zowe,
- org.junit,
+ org.junit;bundle-version="4.13.2",
  org.eclipse.ui.workbench,
  com.ibm.cics.core.comm,
  com.ibm.cics.zos.comm

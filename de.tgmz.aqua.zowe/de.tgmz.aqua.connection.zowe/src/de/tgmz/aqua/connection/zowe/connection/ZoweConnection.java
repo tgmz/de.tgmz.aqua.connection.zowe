@@ -54,7 +54,7 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	public void connect() throws ConnectionException {
 		CredentialsConfiguration cc = ConnectionsPlugin.getDefault().getCredentialsManager().findCredentialsConfigurationByID(super.getConfiguration().getCredentialsID());
 
-		this.connect(getConfiguration().getHost(), getConfiguration().getPort(), cc.getUserID(), new String(cc.getPasswordAsCharArray()));
+		this.connect(getConfiguration().getHost(), getConfiguration().getPort(), cc.getUserID(), cc.getPassword());
 	}
 
 	public void connect(String host, int port, String user, String pass) throws ConnectionException {

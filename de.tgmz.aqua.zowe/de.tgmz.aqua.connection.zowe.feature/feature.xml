@@ -13,7 +13,7 @@
 <feature
       id="de.tgmz.aqua.connection.zowe.feature"
       label="ZOWE Connector for IBM Aqua"
-      version="1.0.3">
+      version="1.0.3.qualifier">
 
    <description>
       Add this plugin to your IBM Aqua 3.3 installation to connect to an IBM mainframe via its REST interface.

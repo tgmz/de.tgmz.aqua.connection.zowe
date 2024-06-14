@@ -4,7 +4,7 @@ Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-SymbolicName: de.tgmz.aqua.connection.zowe;singleton:=true
-Bundle-Version: 1.0.3
+Bundle-Version: 1.0.3.qualifier
 Bundle-Activator: de.tgmz.aqua.connection.zowe.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
