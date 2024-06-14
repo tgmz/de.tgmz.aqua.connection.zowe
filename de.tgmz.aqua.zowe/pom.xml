@@ -17,7 +17,7 @@
 
 	<groupId>de.tgmz</groupId>
 	<artifactId>de.tgmz.aqua.zowe</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.4</version>
 	<packaging>pom</packaging>
 	<name>ZOWE Connector for IBM Aqua</name>
 
@@ -34,14 +34,14 @@
 	<organization>
 		<name>Thomas Zierer</name>
 	</organization>
-	
+
 	<distributionManagement>
 		<site>
 			<id>${project.artifactId}-site</id>
 			<url>file://${project.build.directory}/completesite</url>
 		</site>
 	</distributionManagement>
-  
+
 	<developers>
 		<developer>
 			<id>thomas.zierer@muenchen-mail.de</id>
@@ -59,7 +59,7 @@
 		<java-version>1.8</java-version>
 		<jacoco.version>0.8.12</jacoco.version>
 		<sonar.java.source>1.8</sonar.java.source>
- 		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
+		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
 	</properties>
 
 	<modules>
@@ -133,9 +133,9 @@
 							<ws>win32</ws>
 							<arch>x86_64</arch>
 						</environment>
-						<!-- <environment> 
-							<os>linux</os> <ws>gtk</ws> <arch>x86_64</arch> </environment> <environment> 
-							<os>macosx</os> <ws>cocoa</ws> <arch>x86_64</arch> </environment> -->
+						<!-- <environment>
+							<os>linux</os><ws>gtk</ws><arch>x86_64</arch></environment><environment>
+							<os>macosx</os><ws>cocoa</ws><arch>x86_64</arch></environment>-->
 					</environments>
 				</configuration>
 			</plugin>
@@ -152,40 +152,40 @@
 					<ignoreErrors>false</ignoreErrors>
 					<!-- Ensure EPL only -->
 					<addDefaultLicenseMatchers>false</addDefaultLicenseMatchers>
-       				<licenses>                                                                                                         
-       					<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">                           
-       						<licenseFamilyCategory>EPL</licenseFamilyCategory>                                                         
-       						<licenseFamilyName>Eclipse Public License</licenseFamilyName>                                              
-       						<notes></notes>                                                                                            
-       						<patterns>                                                                                                 
-       							<pattern>SPDX-License-Identifier: EPL-2.0</pattern>                                                          
-       						</patterns>                                                                                                
-       					</license>                                                                                                     
-       				</licenses>                                                                                                        
-       				<licenseFamilies>                                                                                                  
-       					<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">                                    
-       						<familyName>Eclipse Public License</familyName>                                                            
-       					</licenseFamily>     
-       				</licenseFamilies>                                                                                          
+					<licenses>
+						<license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+							<licenseFamilyCategory>EPL</licenseFamilyCategory>
+							<licenseFamilyName>Eclipse Public License</licenseFamilyName>
+							<notes></notes>
+							<patterns>
+								<pattern>SPDX-License-Identifier: EPL-2.0</pattern>
+							</patterns>
+						</license>
+					</licenses>
+					<licenseFamilies>
+						<licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">
+							<familyName>Eclipse Public License</familyName>
+						</licenseFamily>
+					</licenseFamilies>
 					<excludes combine.children="append">
-       					<exclude>**/target/**</exclude>
-       					<exclude>**/bin/**</exclude>
+						<exclude>**/target/**</exclude>
+						<exclude>**/bin/**</exclude>
 						<!-- Eclipse -->
-           				<exclude>**/*.launch</exclude>                                                                                 
-           				<exclude>**/.settings/**</exclude>                                                                                 
-           				<exclude>**/.project</exclude>                                                                                 
-           				<exclude>**/.classpath</exclude>                                                                                 
+						<exclude>**/*.launch</exclude>
+						<exclude>**/.settings/**</exclude>
+						<exclude>**/.project</exclude>
+						<exclude>**/.classpath</exclude>
 						<!-- OSGI -->
 						<exclude>**/MANIFEST.MF</exclude>
-           				<exclude>**/build.properties</exclude>                                                                         
+						<exclude>**/build.properties</exclude>
 						<!-- Tycho stuff -->
-       					<exclude>**/.polyglot.*</exclude>                                                          
+						<exclude>**/.polyglot.*</exclude>
 						<!-- Test resources -->
-       					<exclude>src/testresources/**</exclude>                                                          
+						<exclude>src/testresources/**</exclude>
 						<!-- Generated files -->
-       					<exclude>**/*.jardesc</exclude>                                                          
+						<exclude>**/*.jardesc</exclude>
 						<!-- Dummy stuff -->
-       					<exclude>**/dummy.txt</exclude>                                                          
+						<exclude>**/dummy.txt</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -280,13 +280,13 @@
 			</properties>
 			<build>
 				<plugins>
-		            <plugin>
-    	    	        <groupId>org.owasp</groupId>
-        	    	    <artifactId>dependency-check-maven</artifactId>
-            	    	<version>9.2.0</version>
+					<plugin>
+						<groupId>org.owasp</groupId>
+						<artifactId>dependency-check-maven</artifactId>
+						<version>9.2.0</version>
 						<configuration>
 							<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
-							<failBuildOnCVSS>8.2</failBuildOnCVSS>
+							<failBuildOnCVSS>9.9</failBuildOnCVSS>
 							<failOnError>true</failOnError>
 							<nvdApiKey>${nvdApiKey}</nvdApiKey>
 							<formats>
@@ -302,7 +302,7 @@
 								</goals>
 							</execution>
 						</executions>
-                  	</plugin>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>

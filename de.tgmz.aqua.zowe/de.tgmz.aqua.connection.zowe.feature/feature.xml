@@ -13,7 +13,7 @@
 <feature
       id="de.tgmz.aqua.connection.zowe.feature"
       label="ZOWE Connector for IBM Aqua"
-      version="1.0.3.qualifier">
+      version="1.0.4">
 
    <description>
       Adds the ability to connect a z/OS Explorer (IBM Aqua 3.x) installation to an IBM mainframe entirely via REST (ZOWE).
