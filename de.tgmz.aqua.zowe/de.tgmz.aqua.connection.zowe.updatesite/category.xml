@@ -11,8 +11,8 @@
 **********************************************************************/
 -->
 <site>
-	<category-def name="de.tgmz.aqua.connection.zowe" label="ZOWE Connector for IBM Aqua"/>
 	<feature id="de.tgmz.aqua.connection.zowe.feature">
-		<category name="ZOWE Connector for IBM Aqua"/>
+		<category name="de.tgmz.aqua.connection.zowe"/>
 	</feature>
+	<category-def name="de.tgmz.aqua.connection.zowe" label="ZOWE Connector for IBM Aqua"/>
 </site>
