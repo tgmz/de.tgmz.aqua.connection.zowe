@@ -67,7 +67,6 @@
 		<module>de.tgmz.aqua.connection.zowe</module>
 		<module>de.tgmz.aqua.connection.zowe.test</module>
 		<module>de.tgmz.aqua.connection.zowe.feature</module>
-		<module>de.tgmz.aqua.connection.zowe.updatesite</module>
 	</modules>
 
 	<build>
