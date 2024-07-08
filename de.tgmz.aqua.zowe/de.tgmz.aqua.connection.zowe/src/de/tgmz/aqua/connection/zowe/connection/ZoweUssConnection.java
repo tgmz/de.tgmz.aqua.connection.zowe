@@ -50,9 +50,10 @@ import zowe.client.sdk.zosfiles.uss.response.UnixFile;
 import zowe.client.sdk.zosfiles.uss.types.CreateType;
 
 public class ZoweUssConnection {
-	private static final Logger LOG = LoggerFactory.getLogger(ZoweUssConnection.class);
-
 	public static final ThreadLocal<DateFormat> DF = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
+
+	private static final Logger LOG = LoggerFactory.getLogger(ZoweUssConnection.class);
+	private static final String DEFAULT_MODE = "-rw-r-----";
 
 	private Response response;
 
@@ -75,14 +76,12 @@ public class ZoweUssConnection {
 	public List<ZOSConnectionResponse> getHFSChildren(String aPath, boolean includeHiddenFiles) throws ConnectionException {
 		LOG.debug("getHFSChildren {}, {}", aPath, includeHiddenFiles);
 
-		// Trailing slash yields "incorrect path"
-		String path = aPath.endsWith("/") && aPath.length() > 1 ? aPath.substring(0, aPath.length() - 1) : aPath;
+		String path = normalizePath(aPath);
 
 		List<UnixFile> items;
 
 		try {
-			ListParams params = new ListParams.Builder().path(path).depth(1).build();
-			items = ussList.getFiles(params);
+			items = ussList.getFiles(new ListParams.Builder().path(path).depth(1).build());
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
@@ -90,41 +89,44 @@ public class ZoweUssConnection {
 		List<ZOSConnectionResponse> result = new ArrayList<>(items.size());
 
 		for (UnixFile item : items) {
+			String name = item.getName().orElse(ZoweConnection.UNKNOWN);
+			
 			ZOSConnectionResponse cr = new ZOSConnectionResponse();
 
-			String mode = item.getMode().orElse("-rw-r-----");
-
 			cr.addAttribute(IZOSConstants.HFS_PARENT_PATH, aPath);
-			cr.addAttributeDontTrim(IZOSConstants.NAME, item.getName().orElse(ZoweConnection.UNKNOWN));
+			cr.addAttributeDontTrim(IZOSConstants.NAME, name);
 			cr.addAttribute(IZOSConstants.HFS_SIZE, item.getSize().orElse(0L));
-			cr.addAttribute(IZOSConstants.HFS_DIRECTORY, mode.startsWith("d"));
 			cr.addAttribute(IZOSConstants.HFS_USER, item.getUser().orElse(ZoweConnection.UNKNOWN));
 			cr.addAttribute(IZOSConstants.HFS_GROUP, item.getGroup().orElse(ZoweConnection.UNKNOWN));
+
+			cr.addAttribute(IZOSConstants.HFS_LAST_USED_DATE, getMTime(item));
+
+			String mode = item.getMode().orElse(DEFAULT_MODE);
+
 			cr.addAttribute(IZOSConstants.HFS_PERMISSIONS, mode.substring(1));
 
-			long time = 0L;
-			Optional<String> oMtime = item.getMtime();
+			Optional<String> oTarget = item.getTarget();
 
-			if (oMtime.isPresent()) {
-				try {
-					time = DF.get().parse(oMtime.get()).getTime();
-				} catch (ParseException e) {
-					LOG.warn("Cannot convert mtime {}", oMtime.get());
-				}
-			}
+			if (oTarget.isPresent()) {
+				String target = oTarget.get();
 
-			Calendar cal = Calendar.getInstance();
-			cal.setTimeInMillis(time);
-
-			cr.addAttribute(IZOSConstants.HFS_LAST_USED_DATE, cal);
-			
-			if (mode.startsWith("l")) {
 				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.TRUE);
-				cr.addAttribute(IZOSConstants.HFS_LINKPATH, item.getTarget().orElse(ZoweConnection.UNKNOWN));
+				cr.addAttribute(IZOSConstants.HFS_LINKPATH, target);
+
+				String itemPath = normalizePath(String.format("%s/%s", path, name));
+				
+				try {
+					ussGet.getCommon(itemPath, new GetParams.Builder().insensitive(false).maxreturnsize(1).search(itemPath).build());
+					
+					cr.addAttribute(IZOSConstants.HFS_DIRECTORY, Boolean.FALSE);
+				} catch (ZosmfRequestException e) {
+					cr.addAttribute(IZOSConstants.HFS_DIRECTORY, Boolean.TRUE);
+				}
 			} else {
 				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.FALSE);
+				cr.addAttribute(IZOSConstants.HFS_DIRECTORY, mode.startsWith("d"));
 			}
-			
+
 			result.add(cr);
 		}
 
@@ -141,6 +143,7 @@ public class ZoweUssConnection {
 			LOG.debug("ussGet {}", response);
 		} catch (ZosmfRequestException e) {
 			OptionalInt oStatusCode = e.getResponse().getStatusCode();
+
 			if (oStatusCode.isPresent() && oStatusCode.getAsInt() == 404) {
 				return false;
 			} else {
@@ -231,5 +234,34 @@ public class ZoweUssConnection {
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
+	}
+
+	private String normalizePath(String aPath) {
+		// Trailing slash yields "incorrect path"
+		String result = aPath.endsWith("/") && aPath.length() > 1 ? aPath.substring(0, aPath.length() - 1) : aPath;
+
+		result = result.replace("//", "/");
+
+		return result.startsWith("/") ? result : "/" + result;
+	}
+
+	private Calendar getMTime(UnixFile item) {
+		Calendar result = Calendar.getInstance();
+
+		long time = 0L;
+
+		Optional<String> oMtime = item.getMtime();
+
+		if (oMtime.isPresent()) {
+			try {
+				time = DF.get().parse(oMtime.get()).getTime();
+			} catch (ParseException e) {
+				LOG.warn("Cannot convert mtime {}", oMtime.get());
+			}
+		}
+
+		result.setTimeInMillis(time);
+
+		return result;
 	}
 }

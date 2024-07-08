@@ -17,7 +17,7 @@
 
 	<groupId>de.tgmz</groupId>
 	<artifactId>de.tgmz.aqua.zowe</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 	<packaging>pom</packaging>
 	<name>ZOWE Connector for IBM Aqua</name>
 
@@ -147,6 +147,7 @@
 						<exclude>**/build.properties</exclude>
 						<!-- Tycho stuff -->
 						<exclude>**/.polyglot.*</exclude>
+						<exclude>**/.tycho*</exclude>
 						<!-- Test resources -->
 						<exclude>src/testresources/**</exclude>
 						<!-- Generated files -->
@@ -250,7 +251,7 @@
 					<plugin>
 						<groupId>org.owasp</groupId>
 						<artifactId>dependency-check-maven</artifactId>
-						<version>9.2.0</version>
+						<version>10.0.2</version>
 						<configuration>
 							<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
 							<failBuildOnCVSS>9.9</failBuildOnCVSS>
