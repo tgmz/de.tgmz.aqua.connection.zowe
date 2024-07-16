@@ -18,5 +18,5 @@
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_SHOW_CODEDETAILS_IN_EXCEPTION_MESSAGES" value="true"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dtycho-useJDK=BREE"/>
-    <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${project_loc:de.tgmz.aqua.zowe}"/>
+    <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:/de.tgmz.aqua.zowe}"/>
 </launchConfiguration>

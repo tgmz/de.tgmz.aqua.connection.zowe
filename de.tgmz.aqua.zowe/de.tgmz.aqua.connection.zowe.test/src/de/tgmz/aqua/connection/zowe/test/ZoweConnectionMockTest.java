@@ -158,9 +158,13 @@ public class ZoweConnectionMockTest {
 		connection.deletePathHFS(HFS_PATH);
 		assertTrue(connection.existsHFS(HFS_PATH));
 		assertTrue(connection.existsHFSFile(HFS_PATH, MEMBER_NAME));
-		assertNotNull(connection.getFileHFS(HFS_PATH, FileType.ASCII));
 		assertEquals(3, connection.getHFSChildren(HFS_PATH, true).size());
-		connection.saveFileHFS(HFS_PATH, new NullInputStream(), FileType.ASCII);
+		
+		for (FileType ft : FileType.values()) {
+			assertNotNull(connection.getFileHFS(HFS_PATH, ft));
+			connection.saveFileHFS(HFS_PATH, new NullInputStream(), ft);
+		}
+
 		connection.saveFileHFS(HFS_PATH, new NullInputStream(), StandardCharsets.UTF_8.name());
 	}
 

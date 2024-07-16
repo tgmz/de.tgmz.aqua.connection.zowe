@@ -188,7 +188,13 @@ public class ZoweUssConnection {
 		LOG.debug("saveFileHFS {} {} {}", aPath, fileContents, aFileType);
 
 		try {
-			ussWrite.writeBinary(aPath, IOUtils.toByteArray(fileContents));
+			byte[] content = IOUtils.toByteArray(fileContents);
+			
+			if (aFileType == FileType.BINARY) {
+				ussWrite.writeBinary(aPath, content);
+			} else {
+				ussWrite.writeText(aPath, new String(content));
+			}
 		} catch (ZosmfRequestException | IOException e) {
 			throw new ConnectionException(e);
 		}
@@ -210,7 +216,11 @@ public class ZoweUssConnection {
 		byte[] content;
 
 		try {
-			content = ussGet.getBinary(aPath);
+			if (p1 == FileType.BINARY) {
+				content = ussGet.getBinary(aPath);
+			} else {
+				content = ussGet.getText(aPath).getBytes();
+			}
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
