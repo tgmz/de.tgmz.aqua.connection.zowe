@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
- lib/zowe-client-java-sdk-2.2.1.jar
+ lib/zowe-client-java-sdk-3.1.7.jar
 Automatic-Module-Name: de.tgmz.aqua.connection.zowe
 Export-Package: de.tgmz.aqua.connection.zowe,
  de.tgmz.aqua.connection.zowe.connection
