@@ -32,18 +32,18 @@ import com.ibm.cics.zos.comm.ZOSUnsupportedOperationException;
 import zowe.client.sdk.core.ZosConnection;
 import zowe.client.sdk.rest.Response;
 import zowe.client.sdk.rest.exception.ZosmfRequestException;
-import zowe.client.sdk.zosfiles.dsn.input.CopyParams;
-import zowe.client.sdk.zosfiles.dsn.input.CreateParams;
-import zowe.client.sdk.zosfiles.dsn.input.DownloadParams;
-import zowe.client.sdk.zosfiles.dsn.input.ListParams;
+import zowe.client.sdk.zosfiles.dsn.input.DsnCopyInputData;
+import zowe.client.sdk.zosfiles.dsn.input.DsnCreateInputData;
+import zowe.client.sdk.zosfiles.dsn.input.DsnDownloadInputData;
+import zowe.client.sdk.zosfiles.dsn.input.DsnListInputData;
 import zowe.client.sdk.zosfiles.dsn.methods.DsnCopy;
 import zowe.client.sdk.zosfiles.dsn.methods.DsnCreate;
 import zowe.client.sdk.zosfiles.dsn.methods.DsnDelete;
 import zowe.client.sdk.zosfiles.dsn.methods.DsnGet;
 import zowe.client.sdk.zosfiles.dsn.methods.DsnList;
 import zowe.client.sdk.zosfiles.dsn.methods.DsnWrite;
-import zowe.client.sdk.zosfiles.dsn.response.Dataset;
-import zowe.client.sdk.zosfiles.dsn.response.Member;
+import zowe.client.sdk.zosfiles.dsn.model.Dataset;
+import zowe.client.sdk.zosfiles.dsn.model.Member;
 import zowe.client.sdk.zosfiles.dsn.types.AttributeType;
 
 public class ZoweDsnConnection {
@@ -136,7 +136,7 @@ public class ZoweDsnConnection {
 			break;
 		}
 
-		CreateParams createParams = new CreateParams.Builder()
+		DsnCreateInputData createParams = new DsnCreateInputData.Builder()
 				.dsorg(dataSetArguments.datasetType.startsWith("PDS") ? "PO" : dataSetArguments.datasetType)
 				.dsntype("PDSE".equals(dataSetArguments.datasetType) ? "LIBRARY" : null)
 				.alcunit(alcunit)
@@ -202,7 +202,7 @@ public class ZoweDsnConnection {
 	public void createDataSet(String dataSetName, String basedOnDataSetPath, InputStream contents) throws ConnectionException {
 		LOG.debug("createDataSet {} {} {}", dataSetName, basedOnDataSetPath, contents);
 
-		CopyParams copyParams = new CopyParams.Builder().fromDataSet(basedOnDataSetPath).toDataSet(dataSetName).build();
+		DsnCopyInputData copyParams = new DsnCopyInputData.Builder().fromDataSet(basedOnDataSetPath).toDataSet(dataSetName).build();
 
 		try {
 			response = dsnCopy.copyCommon(copyParams);
@@ -220,7 +220,7 @@ public class ZoweDsnConnection {
 	}
 
 	private ByteArrayOutputStream retrieve(String dataSetName) throws ConnectionException {
-		DownloadParams params = new DownloadParams.Builder().build();
+		DsnDownloadInputData params = new DsnDownloadInputData.Builder().build();
 
 		try (InputStream is = dsnGet.get(dataSetName, params); 
 				ByteArrayOutputStream os = new ByteArrayOutputStream()) {
@@ -236,7 +236,7 @@ public class ZoweDsnConnection {
 		List<Dataset> items;
 
 		try {
-			items = dsnList.getDatasets(pattern, new ListParams.Builder().attribute(AttributeType.BASE).build());
+			items = dsnList.getDatasets(pattern, new DsnListInputData.Builder().attribute(AttributeType.BASE).build());
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
@@ -245,22 +245,22 @@ public class ZoweDsnConnection {
 
 		for (Dataset item : items) {
 			ZOSConnectionResponse cr = new ZOSConnectionResponse();
-			cr.addAttribute(IZOSConstants.FILE_NAME, item.getDsname().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_BLOCK_SIZE, item.getBlksz().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_EXT, item.getExtx().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_RECORD_LENGTH, item.getLrectl().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_REFERRED_DATE, item.getRdate().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_RECORD_FORMAT, item.getRecfm().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_ALLOCATED, item.getUsed().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_VOLUME, item.getVol().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_CREATION_DATE, item.getCdate().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_SIZE, item.getSizex().orElse(ZoweConnection.UNKNOWN));
+			cr.addAttribute(IZOSConstants.FILE_NAME, item.getDsname());
+			cr.addAttribute(IZOSConstants.FILE_BLOCK_SIZE, item.getBlksz());
+			cr.addAttribute(IZOSConstants.FILE_EXT, item.getExtx());
+			cr.addAttribute(IZOSConstants.FILE_RECORD_LENGTH, item.getLrectl());
+			cr.addAttribute(IZOSConstants.FILE_REFERRED_DATE, item.getRdate());
+			cr.addAttribute(IZOSConstants.FILE_RECORD_FORMAT, item.getRecfm());
+			cr.addAttribute(IZOSConstants.FILE_ALLOCATED, item.getUsed());
+			cr.addAttribute(IZOSConstants.FILE_VOLUME, item.getVol());
+			cr.addAttribute(IZOSConstants.FILE_CREATION_DATE, item.getCdate());
+			cr.addAttribute(IZOSConstants.FILE_SIZE, item.getSizex());
 
-			if ("YES".equals(item.getMigr().orElse("NO"))) {
+			if ("YES".equals(item.getMigr())) {
 				cr.addAttribute(IZOSConstants.FILE_UNAVAILABLE, IZOSConstants.Unavailable.Migrated);
 			}
 
-			String dsorg = item.getDsorg().orElse(ZoweConnection.UNKNOWN);
+			String dsorg = item.getDsorg();
 
 			if ("VS".equals(dsorg)) {
 				cr.addAttribute(IZOSConstants.FILE_DSORG, "VSAM");
@@ -286,7 +286,7 @@ public class ZoweDsnConnection {
 		List<Member> items;
 
 		try {
-			items = dsnList.getMembers(dataSetName, new ListParams.Builder().attribute(AttributeType.MEMBER).build());
+			items = dsnList.getMembers(dataSetName, new DsnListInputData.Builder().attribute(AttributeType.MEMBER).build());
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
@@ -297,10 +297,10 @@ public class ZoweDsnConnection {
 			ZOSConnectionResponse cr = new ZOSConnectionResponse();
 
 			cr.addAttribute(IZOSConstants.FILE_PARENTPATH, dataSetName);
-			cr.addAttribute(IZOSConstants.NAME, item.getMember().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_CREATION_DATE, item.getC4date().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_CHANGED_DATE, item.getM4date().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.FILE_MOD, item.getVers().orElse(0L));
+			cr.addAttribute(IZOSConstants.NAME, item.getMember());
+			cr.addAttribute(IZOSConstants.FILE_CREATION_DATE, item.getC4date());
+			cr.addAttribute(IZOSConstants.FILE_CHANGED_DATE, item.getM4date());
+			cr.addAttribute(IZOSConstants.FILE_MOD, item.getVers());
 
 			result.add(cr);
 		}

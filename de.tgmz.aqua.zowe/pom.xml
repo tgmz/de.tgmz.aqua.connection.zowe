@@ -17,7 +17,7 @@
 
 	<groupId>de.tgmz</groupId>
 	<artifactId>de.tgmz.aqua.zowe</artifactId>
-	<version>1.0.6</version>
+	<version>1.0.7</version>
 	<packaging>pom</packaging>
 	<name>ZOWE Connector for IBM Aqua</name>
 
@@ -55,9 +55,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<tycho-version>3.0.4</tycho-version>
+		<tycho-version>3.0.5</tycho-version>
 		<java-version>1.8</java-version>
-		<jacoco.version>0.8.12</jacoco.version>
+		<jacoco.version>0.8.13</jacoco.version>
 		<sonar.java.source>1.8</sonar.java.source>
 		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
 	</properties>
@@ -251,15 +251,21 @@
 					<plugin>
 						<groupId>org.owasp</groupId>
 						<artifactId>dependency-check-maven</artifactId>
-						<version>10.0.2</version>
+						<version>12.1.9</version>
 						<configuration>
 							<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+							<centralAnalyzerEnabled>false</centralAnalyzerEnabled>
+							<!-- Make sure xinfo plugins are shipped w/o
+							vulnerabilities -->
 							<failBuildOnCVSS>9.9</failBuildOnCVSS>
+							<skipTestScope>true</skipTestScope>
 							<failOnError>true</failOnError>
 							<nvdApiKey>${nvdApiKey}</nvdApiKey>
 							<formats>
 								<format>HTML</format>
 							</formats>
+							<suppressionFiles>
+							</suppressionFiles>
 						</configuration>
 						<executions>
 							<execution>
@@ -275,4 +281,11 @@
 			</build>
 		</profile>
 	</profiles>
+	<dependencies>
+	<dependency>
+        <groupId>com.konghq</groupId>
+        <version>4.7.0</version>
+    <artifactId>unirest-java-core</artifactId>
+	</dependency>
+	</dependencies>
 </project>

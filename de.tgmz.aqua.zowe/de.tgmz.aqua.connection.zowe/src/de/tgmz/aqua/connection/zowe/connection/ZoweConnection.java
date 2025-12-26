@@ -29,6 +29,7 @@ import com.ibm.cics.zos.comm.IZOSConstants;
 import com.ibm.cics.zos.comm.ZOSConnectionResponse;
 
 import zowe.client.sdk.core.ZosConnection;
+import zowe.client.sdk.core.ZosConnectionFactory;
 import zowe.client.sdk.rest.exception.ZosmfRequestException;
 import zowe.client.sdk.zosmfinfo.methods.ZosmfStatus;
 import zowe.client.sdk.zosmfinfo.response.ZosmfInfoResponse;
@@ -58,7 +59,7 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	public void connect(String host, int port, String user, String pass) throws ConnectionException {
-		connection = new ZosConnection(host, String.valueOf(port), user, pass);
+		connection = ZosConnectionFactory.createBasicConnection(host, String.valueOf(port), user, pass);
 
 		initSSLConfiguration();
 
@@ -71,8 +72,8 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 		try {
 			ZosmfInfoResponse zosmfInfoResponse = zosmfStatus.get();
 
-			String realHost = zosmfInfoResponse.getZosmfHostName().orElse(UNKNOWN);
-			String osVersion = zosmfInfoResponse.getZosVersion().orElse(UNKNOWN);
+			String realHost = zosmfInfoResponse.getZosmfHostName();
+			String osVersion = zosmfInfoResponse.getZosVersion();
 
 			connected = true;
 

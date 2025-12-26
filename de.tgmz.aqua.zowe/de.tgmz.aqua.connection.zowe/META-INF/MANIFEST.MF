@@ -4,7 +4,7 @@ Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-SymbolicName: de.tgmz.aqua.connection.zowe;singleton:=true
-Bundle-Version: 1.0.6
+Bundle-Version: 1.0.7
 Bundle-Activator: de.tgmz.aqua.connection.zowe.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -17,7 +17,15 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
- lib/zowe-client-java-sdk-2.2.1.jar
+ lib/zowe-client-java-sdk-5.2.3.jar,
+ lib/unirest-java-core-4.4.5.jar,
+ lib/guava-32.1.3-jre.jar,
+ lib/unirest-objectmapper-jackson-4.2.4.jar,
+ lib/jackson-core-2.15.2.jar,
+ lib/jackson-databind-2.15.2.jar,
+ lib/jackson-datatype-jsr310-2.15.2.jar,
+ lib/jackson-annotations-2.15.2.jar,
+ lib/json-simple-1.1.1.jar
 Automatic-Module-Name: de.tgmz.aqua.connection.zowe
 Export-Package: de.tgmz.aqua.connection.zowe,
  de.tgmz.aqua.connection.zowe.connection

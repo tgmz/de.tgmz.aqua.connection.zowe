@@ -21,13 +21,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalInt;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.cics.common.util.StringUtil;
 import com.ibm.cics.core.comm.ConnectionException;
 import com.ibm.cics.zos.comm.IZOSConstants;
 import com.ibm.cics.zos.comm.IZOSConstants.FileType;
@@ -36,24 +36,23 @@ import com.ibm.cics.zos.comm.ZOSConnectionResponse;
 import zowe.client.sdk.core.ZosConnection;
 import zowe.client.sdk.rest.Response;
 import zowe.client.sdk.rest.exception.ZosmfRequestException;
-import zowe.client.sdk.zosfiles.uss.input.ChangeModeParams;
-import zowe.client.sdk.zosfiles.uss.input.CreateParams;
-import zowe.client.sdk.zosfiles.uss.input.GetParams;
-import zowe.client.sdk.zosfiles.uss.input.ListParams;
+import zowe.client.sdk.zosfiles.uss.input.UssChangeModeInputData;
+import zowe.client.sdk.zosfiles.uss.input.UssCreateInputData;
+import zowe.client.sdk.zosfiles.uss.input.UssGetInputData;
+import zowe.client.sdk.zosfiles.uss.input.UssListInputData;
 import zowe.client.sdk.zosfiles.uss.methods.UssChangeMode;
 import zowe.client.sdk.zosfiles.uss.methods.UssCreate;
 import zowe.client.sdk.zosfiles.uss.methods.UssDelete;
 import zowe.client.sdk.zosfiles.uss.methods.UssGet;
 import zowe.client.sdk.zosfiles.uss.methods.UssList;
 import zowe.client.sdk.zosfiles.uss.methods.UssWrite;
-import zowe.client.sdk.zosfiles.uss.response.UnixFile;
+import zowe.client.sdk.zosfiles.uss.model.UnixFile;
 import zowe.client.sdk.zosfiles.uss.types.CreateType;
 
 public class ZoweUssConnection {
 	public static final ThreadLocal<DateFormat> DF = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
 
 	private static final Logger LOG = LoggerFactory.getLogger(ZoweUssConnection.class);
-	private static final String DEFAULT_MODE = "-rw-r-----";
 
 	private Response response;
 
@@ -81,7 +80,7 @@ public class ZoweUssConnection {
 		List<UnixFile> items;
 
 		try {
-			items = ussList.getFiles(new ListParams.Builder().path(path).depth(1).build());
+			items = ussList.getFiles(new UssListInputData.Builder().path(path).depth(1).build());
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
@@ -89,45 +88,45 @@ public class ZoweUssConnection {
 		List<ZOSConnectionResponse> result = new ArrayList<>(items.size());
 
 		for (UnixFile item : items) {
-			String name = item.getName().orElse(ZoweConnection.UNKNOWN);
+			String name = item.getName();
 			
-			ZOSConnectionResponse cr = new ZOSConnectionResponse();
+			if (!StringUtil.isEmpty(name)) { 
+				ZOSConnectionResponse cr = new ZOSConnectionResponse();
 
-			cr.addAttribute(IZOSConstants.HFS_PARENT_PATH, aPath);
-			cr.addAttributeDontTrim(IZOSConstants.NAME, name);
-			cr.addAttribute(IZOSConstants.HFS_SIZE, item.getSize().orElse(0L));
-			cr.addAttribute(IZOSConstants.HFS_USER, item.getUser().orElse(ZoweConnection.UNKNOWN));
-			cr.addAttribute(IZOSConstants.HFS_GROUP, item.getGroup().orElse(ZoweConnection.UNKNOWN));
+				cr.addAttribute(IZOSConstants.HFS_PARENT_PATH, aPath);
+				cr.addAttributeDontTrim(IZOSConstants.NAME, name);
+				cr.addAttribute(IZOSConstants.HFS_SIZE, item.getSize());
+				cr.addAttribute(IZOSConstants.HFS_USER, item.getUser());
+				cr.addAttribute(IZOSConstants.HFS_GROUP, item.getGroup());
 
-			cr.addAttribute(IZOSConstants.HFS_LAST_USED_DATE, getMTime(item));
+				cr.addAttribute(IZOSConstants.HFS_LAST_USED_DATE, getMTime(item));
 
-			String mode = item.getMode().orElse(DEFAULT_MODE);
+				String mode = item.getMode();
 
-			cr.addAttribute(IZOSConstants.HFS_PERMISSIONS, mode.substring(1));
+				cr.addAttribute(IZOSConstants.HFS_PERMISSIONS, mode.substring(1));
 
-			Optional<String> oTarget = item.getTarget();
+				String target = item.getTarget();
+			
+				if (!StringUtil.isEmpty(target)) {
+					cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.TRUE);
+					cr.addAttribute(IZOSConstants.HFS_LINKPATH, target);
 
-			if (oTarget.isPresent()) {
-				String target = oTarget.get();
-
-				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.TRUE);
-				cr.addAttribute(IZOSConstants.HFS_LINKPATH, target);
-
-				String itemPath = normalizePath(String.format("%s/%s", path, name));
+					String itemPath = normalizePath(String.format("%s/%s", path, name));
 				
-				try {
-					ussGet.getCommon(itemPath, new GetParams.Builder().insensitive(false).maxreturnsize(1).search(itemPath).build());
+					try {
+						ussGet.getCommon(itemPath, new UssGetInputData.Builder().insensitive(false).maxreturnsize(1).search(itemPath).build());
 					
-					cr.addAttribute(IZOSConstants.HFS_DIRECTORY, Boolean.FALSE);
-				} catch (ZosmfRequestException e) {
-					cr.addAttribute(IZOSConstants.HFS_DIRECTORY, Boolean.TRUE);
+						cr.addAttribute(IZOSConstants.HFS_DIRECTORY, Boolean.FALSE);
+					} catch (ZosmfRequestException e) {
+						cr.addAttribute(IZOSConstants.HFS_DIRECTORY, Boolean.TRUE);
+					}
+				} else {
+					cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.FALSE);
+					cr.addAttribute(IZOSConstants.HFS_DIRECTORY, mode.startsWith("d"));
 				}
-			} else {
-				cr.addAttribute(IZOSConstants.HFS_SYMLINK, Boolean.FALSE);
-				cr.addAttribute(IZOSConstants.HFS_DIRECTORY, mode.startsWith("d"));
-			}
 
-			result.add(cr);
+				result.add(cr);
+			}
 		}
 
 		return result;
@@ -136,7 +135,8 @@ public class ZoweUssConnection {
 	public boolean existsHFS(String aPath) throws ConnectionException {
 		LOG.debug("existsHFS {}", aPath);
 
-		GetParams params = new GetParams.Builder().insensitive(false).search(aPath).build();
+		UssGetInputData params = new UssGetInputData.Builder().insensitive(false).search(aPath).build();
+		
 		try {
 			response = ussGet.getCommon(aPath, params);
 
@@ -163,9 +163,10 @@ public class ZoweUssConnection {
 	public void createFolderHFS(String aPath) throws ConnectionException {
 		LOG.debug("createFolderHFS {}", aPath);
 
-		CreateParams params = new CreateParams(CreateType.DIR, "rwxr-xr-x");
+		UssCreateInputData param = new UssCreateInputData(CreateType.DIR, "rwxr-xr-x");
+		
 		try {
-			response = ussCreate.create(aPath, params);
+			response = ussCreate.create(aPath, param);
 
 			LOG.debug("ussCreate {}", response);
 		} catch (ZosmfRequestException e) {
@@ -240,7 +241,7 @@ public class ZoweUssConnection {
 		LOG.debug("changePermissions {} {}", aPath, octal);
 
 		try {
-			ussChangeMode.change(aPath, new ChangeModeParams.Builder().mode(octal).build());
+			ussChangeMode.change(aPath, new UssChangeModeInputData.Builder().mode(octal).build());
 		} catch (ZosmfRequestException e) {
 			throw new ConnectionException(e);
 		}
@@ -259,15 +260,13 @@ public class ZoweUssConnection {
 		Calendar result = Calendar.getInstance();
 
 		long time = 0L;
+		
+		String mTime = item.getMtime();
 
-		Optional<String> oMtime = item.getMtime();
-
-		if (oMtime.isPresent()) {
-			try {
-				time = DF.get().parse(oMtime.get()).getTime();
-			} catch (ParseException e) {
-				LOG.warn("Cannot convert mtime {}", oMtime.get());
-			}
+		try {
+			time = DF.get().parse(mTime).getTime();
+		} catch (ParseException e) {
+			LOG.warn("Cannot convert mtime {}", mTime);
 		}
 
 		result.setTimeInMillis(time);

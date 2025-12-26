@@ -17,7 +17,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -35,13 +34,13 @@ import zowe.client.sdk.rest.ZosmfRequest;
 import zowe.client.sdk.rest.ZosmfRequestFactory;
 import zowe.client.sdk.rest.exception.ZosmfRequestException;
 import zowe.client.sdk.rest.type.ZosmfRequestType;
-import zowe.client.sdk.zosjobs.input.GetJobParams;
-import zowe.client.sdk.zosjobs.input.JobFile;
+import zowe.client.sdk.zosjobs.input.JobGetInputData;
 import zowe.client.sdk.zosjobs.methods.JobCancel;
 import zowe.client.sdk.zosjobs.methods.JobDelete;
 import zowe.client.sdk.zosjobs.methods.JobGet;
 import zowe.client.sdk.zosjobs.methods.JobSubmit;
-import zowe.client.sdk.zosjobs.response.Job;
+import zowe.client.sdk.zosjobs.model.Job;
+import zowe.client.sdk.zosjobs.model.JobFile;
 
 public class ZoweJobConnection {
 	private static final Logger LOG = LoggerFactory.getLogger(ZoweJobConnection.class);
@@ -91,8 +90,8 @@ public class ZoweJobConnection {
 			List<JobFile> files = jobGet.getSpoolFilesByJob(jobs);
 
 			for (JobFile file : files) {
-				if (Long.parseLong(split[1]) == file.getId().orElse(0L)) {
-					response = download(file.getRecordsUrl().orElseThrow(() -> new ConnectionException("No download URL available")));
+				if (Long.parseLong(split[1]) == file.getId()) {
+					response = download(file.getRecordsUrl());
 
 					baos.write(((String) response.getResponsePhrase().orElse("")).getBytes());
 
@@ -123,12 +122,12 @@ public class ZoweJobConnection {
 		for (JobFile jf : spoolFilesByJob) {
 			ZOSConnectionResponse cr = new ZOSConnectionResponse();
 
-			String id = jf.getJobId().orElse(jobID);
+			String id = jf.getJobId();
 
-			cr.addAttribute(IZOSConstants.JOB_STEPNAME, id + "." + jf.getDdName().orElse(ZoweConnection.UNKNOWN));
+			cr.addAttribute(IZOSConstants.JOB_STEPNAME, id + "." + jf.getDdName());
 			cr.addAttribute(IZOSConstants.JOB_ID, id);
-			cr.addAttribute(IZOSConstants.JOB_DDNAME, jf.getDdName().orElse(jobID));
-			cr.addAttribute(IZOSConstants.JOB_DSNAME, id + "." + jf.getId().orElse(0L));
+			cr.addAttribute(IZOSConstants.JOB_DDNAME, jf.getDdName());
+			cr.addAttribute(IZOSConstants.JOB_DSNAME, id + "." + jf.getId());
 			cr.addAttribute(IZOSConstants.JOB_SPOOL_FILES_AVAILABLE, true);
 
 			result.add(cr);
@@ -143,7 +142,7 @@ public class ZoweJobConnection {
 		List<ZOSConnectionResponse> result = new LinkedList<>();
 		List<Job> jobs;
 
-		GetJobParams params = new GetJobParams.Builder(owner).prefix(jobName).build();
+		JobGetInputData params = new JobGetInputData.Builder(owner).prefix(jobName).build();
 
 		try {
 			jobs = jobGet.getCommon(params);
@@ -153,7 +152,7 @@ public class ZoweJobConnection {
 
 		for (Job job : jobs) {
 			if (aJobStatus == JobStatus.ALL
-					|| JobStatus.valueOf(job.getStatus().orElse(ZoweConnection.UNKNOWN)) == aJobStatus) {
+					|| JobStatus.valueOf(job.getStatus()) == aJobStatus) {
 				result.add(convertJob(job));
 			}
 		}
@@ -178,7 +177,7 @@ public class ZoweJobConnection {
 	public ByteArrayOutputStream getJobSpool(String jobID) throws ConnectionException {
 		LOG.debug("getJobSpool {}", jobID);
 
-		GetJobParams params = new GetJobParams.Builder("*").jobId(jobID).build();
+		JobGetInputData params = new JobGetInputData.Builder("*").jobId(jobID).build();
 
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 			List<Job> jobs = jobGet.getCommon(params);
@@ -187,13 +186,9 @@ public class ZoweJobConnection {
 			StringBuilder sb = new StringBuilder();
 
 			for (JobFile jobFile : files) {
-				Optional<String> oString = jobFile.getRecordsUrl();
+				response = download(jobFile.getRecordsUrl());
 
-				if (oString.isPresent()) {
-					response = download(oString.get());
-
-					sb.append((String) response.getResponsePhrase().orElse(""));
-				}
+				sb.append((String) response.getResponsePhrase().orElse(""));
 			}
 
 			baos.write(sb.toString().getBytes());
@@ -216,9 +211,9 @@ public class ZoweJobConnection {
 		}
 
 		ZOSConnectionResponse cr = new ZOSConnectionResponse();
-		cr.addAttribute(IZOSConstants.JOB_NAME, job.getJobName().orElse(ZoweConnection.UNKNOWN));
-		cr.addAttribute(IZOSConstants.JOB_ID, job.getJobId().orElse(ZoweConnection.UNKNOWN));
-		cr.addAttribute(IZOSConstants.JOB_USER, job.getOwner().orElse(connection.getUser()));
+		cr.addAttribute(IZOSConstants.JOB_NAME, job.getJobName());
+		cr.addAttribute(IZOSConstants.JOB_ID, job.getJobId());
+		cr.addAttribute(IZOSConstants.JOB_USER, job.getOwner());
 
 		return cr;
 	}
@@ -228,7 +223,7 @@ public class ZoweJobConnection {
 
 		try {
 			Job byId = jobGet.getById(jobId);
-			response = jobDelete.deleteByJob(createJobBuilder(jobId, byId), "2.0");
+			response = jobDelete.deleteByJob(byId, "2.0");
 
 			LOG.debug("jobDelete {}", response);
 		} catch (ZosmfRequestException e) {
@@ -241,7 +236,7 @@ public class ZoweJobConnection {
 
 		try {
 			Job byId = jobGet.getById(jobId);
-			response = jobCancel.cancelByJob(createJobBuilder(jobId, byId), null);
+			response = jobCancel.cancelByJob(byId, null);
 
 			LOG.debug("jobCancel {}", response);
 		} catch (ZosmfRequestException e) {
@@ -252,50 +247,44 @@ public class ZoweJobConnection {
 	private ZOSConnectionResponse convertJob(Job job) {
 		ZOSConnectionResponse cr = new ZOSConnectionResponse();
 
-		cr.addAttribute(IZOSConstants.NAME, job.getJobName().orElse(ZoweConnection.UNKNOWN));
-		cr.addAttribute(IZOSConstants.JOB_ID, job.getJobId().orElse(ZoweConnection.UNKNOWN));
-		cr.addAttribute(IZOSConstants.JOB_USER, job.getOwner().orElse(ZoweConnection.UNKNOWN));
-		cr.addAttribute(IZOSConstants.JOB_STATUS, IZOSConstants.JobStatus.valueOf(job.getStatus().orElse(ZoweConnection.UNKNOWN)));
-		cr.addAttribute(IZOSConstants.JOB_CLASS, job.getClasss().orElse(ZoweConnection.UNKNOWN));
+		cr.addAttribute(IZOSConstants.NAME, job.getJobName());
+		cr.addAttribute(IZOSConstants.JOB_ID, job.getJobId());
+		cr.addAttribute(IZOSConstants.JOB_USER, job.getOwner());
+		cr.addAttribute(IZOSConstants.JOB_STATUS, IZOSConstants.JobStatus.valueOf(job.getStatus()));
+		cr.addAttribute(IZOSConstants.JOB_CLASS, job.getClasss());
 		cr.addAttribute(IZOSConstants.JOB_SPOOL_FILES_AVAILABLE, true);
 		cr.addAttribute(IZOSConstants.JOB_HAS_SPOOL_FILES, true);
 
-		Optional<String> oRetCode = job.getRetCode();
-
-		if (oRetCode.isPresent()) {
-			String retCode = oRetCode.get();
+		String retCode = job.getRetCode();
 			
-			IJob.JobCompletion jc;
+		IJob.JobCompletion jc;
 			
-			String[] split = retCode.split("[\\s]", 2);
+		String[] split = retCode.split("[\\s]", 2);
 			
-			switch (split[0]) {
-			case "JCL":
-				jc = IJob.JobCompletion.JCLERROR;
-				break;
-			case "CC":
-				if ("0000".equals(split[1])) {
-					jc = IJob.JobCompletion.NORMAL;
-				} else {
-					jc = IJob.JobCompletion.BADRETURNCODE;
-				}
-				break;
-			case "ABEND":
-				jc = IJob.JobCompletion.ABEND;
-				break;
-			default:
-				try {
-					jc = IJob.JobCompletion.valueOf(split[0]);
-				} catch (IllegalArgumentException e) {
-					jc = IJob.JobCompletion.NA;
-				}
+		switch (split[0]) {
+		case "JCL":
+			jc = IJob.JobCompletion.JCLERROR;
+			break;
+		case "CC":
+			if ("0000".equals(split[1])) {
+				jc = IJob.JobCompletion.NORMAL;
+			} else {
+				jc = IJob.JobCompletion.BADRETURNCODE;
 			}
-			
-			cr.addAttribute(IZOSConstants.JOB_ERROR_CODE, split.length == 2 ? split[1] : "");
-			cr.addAttribute(IZOSConstants.JOB_COMPLETION, jc);
-		} else {
-			cr.addAttribute(IZOSConstants.JOB_COMPLETION, IJob.JobCompletion.ACTIVE);
+			break;
+		case "ABEND":
+			jc = IJob.JobCompletion.ABEND;
+			break;
+		default:
+			try {
+				jc = IJob.JobCompletion.valueOf(split[0]);
+			} catch (IllegalArgumentException e) {
+				jc = IJob.JobCompletion.NA;
+			}
 		}
+			
+		cr.addAttribute(IZOSConstants.JOB_ERROR_CODE, split.length == 2 ? split[1] : "");
+		cr.addAttribute(IZOSConstants.JOB_COMPLETION, jc);
 
 		return cr;
 	}
@@ -306,12 +295,5 @@ public class ZoweJobConnection {
 		request.setUrl(url);
 
 		return request.executeRequest();
-	}
-	
-	private Job createJobBuilder(String jobId, Job job) throws ConnectionException {
-		return new Job.Builder()
-				.jobId(jobId)
-				.jobName(job.getJobName().orElseThrow(() -> new ConnectionException(String.format("Job %s not found", jobId))))
-				.build();
 	}
 }
