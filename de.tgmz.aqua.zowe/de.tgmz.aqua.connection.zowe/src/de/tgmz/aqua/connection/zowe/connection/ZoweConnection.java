@@ -59,7 +59,7 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 	}
 
 	public void connect(String host, int port, String user, String pass) throws ConnectionException {
-		connection = ZosConnectionFactory.createBasicConnection(host, String.valueOf(port), user, pass);
+		connection = ZosConnectionFactory.createBasicConnection(host, port, user, pass);
 
 		initSSLConfiguration();
 
@@ -103,7 +103,7 @@ public class ZoweConnection extends AbstractZOSConnection implements IZOSConnect
 
 	@Override
 	public int getPort() {
-		return Integer.parseInt(connection.getZosmfPort());
+		return connection.getZosmfPort();
 	}
 
 	@Override

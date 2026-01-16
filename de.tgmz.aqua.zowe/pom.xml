@@ -57,7 +57,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<tycho-version>3.0.5</tycho-version>
 		<java-version>1.8</java-version>
-		<jacoco.version>0.8.13</jacoco.version>
+		<jacoco.version>0.8.14</jacoco.version>
 		<sonar.java.source>1.8</sonar.java.source>
 		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
 	</properties>
@@ -71,6 +71,26 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.6.2</version>
+				<executions>
+					<execution>
+						<id>enforce-maven</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>3.6.3</version>
+								</requireMavenVersion>
+							</rules>    
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-versions-plugin</artifactId>
@@ -194,7 +214,12 @@
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>build-helper-maven-plugin</artifactId>
-					<version>3.4.0</version>
+					<version>3.6.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>5.5.0.6356</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -251,21 +276,20 @@
 					<plugin>
 						<groupId>org.owasp</groupId>
 						<artifactId>dependency-check-maven</artifactId>
-						<version>12.1.9</version>
+						<version>12.2.0</version>
 						<configuration>
 							<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
 							<centralAnalyzerEnabled>false</centralAnalyzerEnabled>
-							<!-- Make sure xinfo plugins are shipped w/o
-							vulnerabilities -->
-							<failBuildOnCVSS>9.9</failBuildOnCVSS>
+							<!-- At least make sure the product is shipped with no vulnerabilities
+							except for the suppressed (and therefore accepted) ones -->
+							<failBuildOnCVSS>0.0</failBuildOnCVSS>
 							<skipTestScope>true</skipTestScope>
 							<failOnError>true</failOnError>
 							<nvdApiKey>${nvdApiKey}</nvdApiKey>
 							<formats>
 								<format>HTML</format>
 							</formats>
-							<suppressionFiles>
-							</suppressionFiles>
+							<suppressionFiles>src/main/resources/dependency-check-suppressions.xml</suppressionFiles>
 						</configuration>
 						<executions>
 							<execution>
@@ -281,11 +305,4 @@
 			</build>
 		</profile>
 	</profiles>
-	<dependencies>
-	<dependency>
-        <groupId>com.konghq</groupId>
-        <version>4.7.0</version>
-    <artifactId>unirest-java-core</artifactId>
-	</dependency>
-	</dependencies>
 </project>
