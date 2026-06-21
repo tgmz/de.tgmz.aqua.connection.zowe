@@ -60,6 +60,7 @@
 		<jacoco.version>0.8.14</jacoco.version>
 		<sonar.java.source>1.8</sonar.java.source>
 		<sonar.exclusions>src/testresources/**/*.*</sonar.exclusions>
+ 		<maven-jarsigner-version>3.1.0</maven-jarsigner-version>
 	</properties>
 
 	<modules>
@@ -90,6 +91,27 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>${maven-jarsigner-version}</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>${jcs.skip}</skip>
+					<keystore>${jcs.keystore}</keystore>
+					<alias>${jcs.alias}</alias>
+					<storepass>${jcs.storepass}</storepass>
+					<keypass>${jcs.keypass}</keypass>
+					<verbose>false</verbose>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>

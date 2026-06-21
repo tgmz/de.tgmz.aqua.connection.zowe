@@ -34,10 +34,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -50,7 +50,7 @@ jobs:
         run: echo "<html><table>" > $ROOT_PUBLISH/index.html; find $ROOT_PUBLISH -maxdepth 1 -printf "<tr><td><a href=\"%f\">%f</a></td><td>%s</td><td>%Tc</td></tr>\n" >> $ROOT_PUBLISH/index.html; echo "</table></html>" >> $ROOT_PUBLISH/index.html
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
         
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
@@ -59,7 +59,7 @@ jobs:
           destination: ./_site
           
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
 
   # Deployment job
   deploy:
@@ -71,4 +71,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
