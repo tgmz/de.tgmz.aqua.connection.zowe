@@ -34,6 +34,7 @@ import zowe.client.sdk.rest.Response;
 import zowe.client.sdk.rest.exception.ZosmfRequestException;
 import zowe.client.sdk.zosfiles.dsn.input.DsnCopyInputData;
 import zowe.client.sdk.zosfiles.dsn.input.DsnCreateInputData;
+import zowe.client.sdk.zosfiles.dsn.input.DsnDeleteInputData;
 import zowe.client.sdk.zosfiles.dsn.input.DsnDownloadInputData;
 import zowe.client.sdk.zosfiles.dsn.input.DsnListInputData;
 import zowe.client.sdk.zosfiles.dsn.methods.DsnCopy;
@@ -103,13 +104,17 @@ public class ZoweDsnConnection {
 
 	public void deleteDataSet(String dataSetName, String memberName) throws ConnectionException {
 		LOG.debug("deleteDataSet {} {}", dataSetName, memberName);
+		
+		DsnDeleteInputData ddid;
 
 		try {
 			if (dataSetName == null) {
-				response = dsnDelete.delete(memberName);
+				ddid = DsnDeleteInputData.forDataset(memberName);
 			} else {
-				response = dsnDelete.delete(dataSetName, memberName);
+				ddid = DsnDeleteInputData.forMember(dataSetName, memberName);
 			}
+
+			response = dsnDelete.delete(ddid);
 
 			LOG.debug("dsnDelete {}", response);
 		} catch (ZosmfRequestException e) {
