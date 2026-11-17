@@ -13,7 +13,7 @@
 <feature
       id="de.tgmz.aqua.connection.zowe.feature"
       label="ZOWE Connector for IBM Aqua"
-      version="1.0.7"
+      version="1.0.8.qualifier"
       plugin="de.tgmz.aqua.connection.zowe">
 
    <description>
