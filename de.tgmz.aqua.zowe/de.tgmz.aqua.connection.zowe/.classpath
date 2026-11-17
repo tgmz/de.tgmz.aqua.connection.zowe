@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-annotations-2.22.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-datatype-jsr310-2.22.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-databind-2.22.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-core-2.22.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/unirest-modules-jackson-legacy-4.10.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/guava-32.1.3-jre.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/unirest-java-core-4.10.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/zowe-client-java-sdk-7.0.12.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>

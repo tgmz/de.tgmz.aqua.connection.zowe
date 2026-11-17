@@ -20,20 +20,12 @@
 		<cpe>cpe:/a:eclipse:equinox</cpe>
 	</suppress>
 	<suppress>
-		<packageUrl regex="true">^pkg:maven/org\.eclipse\.orbit\.bundles/org\.tukaani\.xz@.*$</packageUrl>
-		<cpe>cpe:/a:tukaani:xz</cpe>
-	</suppress>
-	<suppress>
 		<packageUrl regex="true">^pkg:maven/org\.eclipse\.orbit\.bundles/org\.apache\.xmlgraphics@.*$</packageUrl>
 		<cpe>cpe:/a:apache:xmlgraphics_commons</cpe>
 	</suppress>
 	<suppress>
 		<packageUrl regex="true">^pkg:maven/com\.ibm\.zeus/com\.ibm\.cics\.core\.connections@.*$</packageUrl>
 		<cpe>cpe:/a:ibm:connections</cpe>
-	</suppress>
-	<suppress>
-		<packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson-databind@.*$</packageUrl>
-		<cpe>cpe:/a:fasterxml:jackson-databind</cpe>
 	</suppress>
 	<suppress>
 		<packageUrl regex="true">^pkg:maven/org\.eclipse\.orbit\.bundles/org\.apache\.commons\.io@.*$</packageUrl>
@@ -48,7 +40,7 @@
 		<cpe>cpe:/a:eclipse:org.eclipse.core.runtime</cpe>
 	</suppress>
 	<suppress>
-	<packageUrl regex="true">^pkg:maven/org\.eclipse\.orbit\.bundles/org\.apache\.httpcomponents\.httpclient@.*$</packageUrl>
+		<packageUrl regex="true">^pkg:maven/org\.eclipse\.orbit\.bundles/org\.apache\.httpcomponents\.httpclient@.*$</packageUrl>
 		<cpe>cpe:/a:apache:httpclient</cpe>
 	</suppress>
 	<suppress>
@@ -56,7 +48,6 @@
 		<cpe>cpe:/a:zowe:zowe_cli</cpe>
 	</suppress>
 	<suppress>
-		<packageUrl regex="true">^pkg:maven/de\.tgmz/de\.tgmz\.aqua\.connection\.zowe@.*$</packageUrl>
-		<cpe>cpe:/a:zowe:zowe_cli</cpe>
-	</suppress>
-</suppressions>
+	   <packageUrl regex="true">^pkg:maven/de\.tgmz/de\.tgmz\.aqua\.connection\.zowe@.*$</packageUrl>
+	   <cpe>cpe:/a:zowe:zowe_cli</cpe>
+</suppress></suppressions>
